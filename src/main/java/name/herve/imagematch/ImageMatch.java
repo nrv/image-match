@@ -67,7 +67,7 @@ public class ImageMatch {
 		g2.drawImage(img2, t2, null);
 
 		g2.setColor(Color.GREEN);
-		g2.setStroke(new BasicStroke(2));
+		// g2.setStroke(new BasicStroke(2));
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		for (MyPointMatch pm : matches) {
 			g2.drawLine((int) (pm.getP1().getX() + xo1), (int) (pm.getP1().getY() + yo1), (int) (pm.getP2().getX() + xo2), (int) (pm.getP2().getY() + yo2));
