@@ -23,6 +23,13 @@ public class MyModel implements Cloneable {
 		return new MyPoint(out[0], out[1]);
 	}
 
+	public boolean betterThan(MyModel m) {
+		if (error < 0) {
+			return false;
+		}
+		return error < m.error;
+	}
+
 	@Override
 	public MyModel clone() {
 		MyModel n = new MyModel();
@@ -110,12 +117,6 @@ public class MyModel implements Cloneable {
 		t.setToIdentity();
 		t.rotate(-angle, xo2, yo2);
 		t.translate(-dx, -dy);
-	}
-
-	public boolean betterThan(MyModel m) {
-		if (error < 0)
-			return false;
-		return error < m.error;
 	}
 
 	public boolean testAndKeepGoodMatches(Collection<MyPointMatch> matches, Collection<MyPointMatch> kept, double epsilon, double min_inlier_ratio) {

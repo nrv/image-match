@@ -1,4 +1,4 @@
-package name.herve.imagematch.gui;
+package name.herve.imagematch.gui.util;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -19,11 +19,12 @@ public class FileChooserWithTextField extends JPanel implements ActionListener {
 	private JTextField tf;
 	private JButton bt;
 
-	public FileChooserWithTextField(String buttonLabel) {
+	public FileChooserWithTextField(String buttonLabel, String defaultLocation) {
 		super();
 		bt = new JButton(buttonLabel);
 		bt.addActionListener(this);
 		tf = new JTextField();
+		tf.setText(defaultLocation);
 
 		Dimension maxDim = new Dimension(5000, 25);
 		Dimension minDim = new Dimension(100, 25);
@@ -35,6 +36,10 @@ public class FileChooserWithTextField extends JPanel implements ActionListener {
 		setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 		add(tf);
 		add(bt);
+	}
+	
+	public File getChoosenFile() {
+		return new File(tf.getText());
 	}
 
 	@Override
@@ -48,7 +53,7 @@ public class FileChooserWithTextField extends JPanel implements ActionListener {
 		if (o instanceof JButton) {
 			JButton b = (JButton) e.getSource();
 			if (b == bt) {
-				File f = GUIUtil.fileChooser(this, "Choose", new File(tf.getText()), JFileChooser.FILES_AND_DIRECTORIES);
+				File f = GUIUtil.fileChooser(this, "Choose", getChoosenFile(), JFileChooser.FILES_AND_DIRECTORIES);
 				if (f != null) {
 					tf.setText(f.getAbsolutePath());
 				}

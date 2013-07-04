@@ -35,15 +35,17 @@ public class MyRansac {
 
 			int numInliers = 0;
 			boolean isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
-			//System.out.println("["+i+"] tempInliers - " + tempInliers.size());
-			while (isGood && numInliers < tempInliers.size()) {
+			// System.out.println("["+i+"] tempInliers - " +
+			// tempInliers.size());
+			while (isGood && (numInliers < tempInliers.size())) {
 				numInliers = tempInliers.size();
 				tempModel.minimize(tempInliers);
 				isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
-				//System.out.println("["+i+"] tempInliers - " + tempInliers.size());
+				// System.out.println("["+i+"] tempInliers - " +
+				// tempInliers.size());
 			}
 
-			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 * MIN_MATCHES) {
+			if (isGood && tempModel.betterThan(model) && (tempInliers.size() >= (3 * MIN_MATCHES))) {
 				model = tempModel.clone();
 				inliers.clear();
 				inliers.addAll(tempInliers);

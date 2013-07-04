@@ -15,15 +15,15 @@ public class MyPoint implements Cloneable {
 		this.y = y;
 	}
 
-	public float distance(MyPoint other) {
-		float dx = x - other.x;
-		float dy = y - other.y;
-		return (float) Math.sqrt(dx * dx + dy * dy);
-	}
-
 	@Override
 	public MyPoint clone() {
 		return new MyPoint(x, y);
+	}
+
+	public float distance(MyPoint other) {
+		float dx = x - other.x;
+		float dy = y - other.y;
+		return (float) Math.sqrt((dx * dx) + (dy * dy));
 	}
 
 	public float getX() {
