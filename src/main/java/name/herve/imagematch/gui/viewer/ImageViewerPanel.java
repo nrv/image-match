@@ -31,12 +31,13 @@ public class ImageViewerPanel extends JPanel implements ActionListener, ImageVie
 	private JLabel lbZoom;
 	private JLabel lbPOI;
 	private JSlider slOpacity;
+	private String label;
 
 	public ImageViewerPanel() {
 		super();
 
 		listeners = new HashSet<ImageViewerListener>();
-		
+
 		viewer = new ImageViewer();
 		viewer.addImageViewerListener(this);
 
@@ -91,6 +92,10 @@ public class ImageViewerPanel extends JPanel implements ActionListener, ImageVie
 		return viewer.getImage();
 	}
 
+	public String getLabel() {
+		return label;
+	}
+
 	public float getOpacity() {
 		return slOpacity.getValue() / 1000f;
 	}
@@ -118,12 +123,21 @@ public class ImageViewerPanel extends JPanel implements ActionListener, ImageVie
 		viewer.setFeatures(features);
 	}
 
-	public void setImage(BufferedImage image) {
+	public void setFill(boolean fill) {
+		viewer.setFill(fill);
+	}
+
+	public void setImage(BufferedImage image, String label) {
 		viewer.setImage(image);
+		this.label = label;
 	}
 
 	public void setOpacity(float o) {
 		slOpacity.setValue((int) (o * 1000));
+	}
+
+	public void setUseCircle(boolean useCircle) {
+		viewer.setUseCircle(useCircle);
 	}
 
 	@Override

@@ -31,6 +31,8 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 	private List<MyFeature> features;
 	private BufferedImage cache;
 	private BufferedImage featuresCache;
+	private boolean useCircle;
+	private boolean fill;
 	private int cacheWidth;
 	private int cacheHeight;
 	private int cacheXOffset;
@@ -52,6 +54,8 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		listeners = new HashSet<ImageViewerListener>();
 		zoom = 1;
 		opacity = 1f;
+		useCircle = true;
+		fill = false;
 	}
 
 	public boolean addImageViewerListener(ImageViewerListener e) {
@@ -173,9 +177,28 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 			Graphics2D g2 = (Graphics2D) featuresCache.getGraphics();
 			g2.setColor(Color.RED);
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			for (MyFeature p : features) {
-				g2.fillRect((int) (p.getX() * zoom) - 4, (int) (p.getY() * zoom) - 4, 9, 9);
+			if (useCircle) {
+				if (fill) {
+					for (MyFeature p : features) {
+						g2.fillOval((int) (p.getX() * zoom) - 4, (int) (p.getY() * zoom) - 4, 9, 9);
+					}
+				} else {
+					for (MyFeature p : features) {
+						g2.drawOval((int) (p.getX() * zoom) - 4, (int) (p.getY() * zoom) - 4, 9, 9);
+					}
+				}
+			} else {
+				if (fill) {
+					for (MyFeature p : features) {
+						g2.fillRect((int) (p.getX() * zoom) - 4, (int) (p.getY() * zoom) - 4, 9, 9);
+					}
+				} else {
+					for (MyFeature p : features) {
+						g2.drawRect((int) (p.getX() * zoom) - 4, (int) (p.getY() * zoom) - 4, 9, 9);
+					}
+				}
 			}
+
 			g2.dispose();
 			needFeatureCacheRedraw = false;
 		}
@@ -223,6 +246,12 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		repaint();
 	}
 
+	public void setFill(boolean fill) {
+		this.fill = fill;
+		needFeatureCacheRedraw = true;
+		repaint();
+	}
+
 	public void setImage(BufferedImage image) {
 		this.image = image;
 		resetZoom();
@@ -230,6 +259,12 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 
 	public void setOpacity(float opacity) {
 		this.opacity = opacity;
+		repaint();
+	}
+
+	public void setUseCircle(boolean useCircle) {
+		this.useCircle = useCircle;
+		needFeatureCacheRedraw = true;
 		repaint();
 	}
 

@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -16,11 +18,15 @@ import plugins.nherve.toolbox.gui.GUIUtil;
 public class FileChooserWithTextField extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 7978928047153910878L;
 
+	private Set<FileChooserListener> listeners;
 	private JTextField tf;
 	private JButton bt;
 
 	public FileChooserWithTextField(String buttonLabel, String defaultLocation) {
 		super();
+
+		listeners = new HashSet<FileChooserListener>();
+
 		bt = new JButton(buttonLabel);
 		bt.addActionListener(this);
 		tf = new JTextField();
@@ -37,10 +43,6 @@ public class FileChooserWithTextField extends JPanel implements ActionListener {
 		add(tf);
 		add(bt);
 	}
-	
-	public File getChoosenFile() {
-		return new File(tf.getText());
-	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -56,8 +58,27 @@ public class FileChooserWithTextField extends JPanel implements ActionListener {
 				File f = GUIUtil.fileChooser(this, "Choose", getChoosenFile(), JFileChooser.FILES_AND_DIRECTORIES);
 				if (f != null) {
 					tf.setText(f.getAbsolutePath());
+					fireFileChoosenEvent();
 				}
 			}
 		}
+	}
+
+	public boolean addFileChooserListener(FileChooserListener e) {
+		return listeners.add(e);
+	}
+
+	private void fireFileChoosenEvent() {
+		for (FileChooserListener l : listeners) {
+			l.fileChoosen(this);
+		}
+	}
+
+	public File getChoosenFile() {
+		return new File(tf.getText());
+	}
+
+	public boolean removeFileChooserListener(FileChooserListener o) {
+		return listeners.remove(o);
 	}
 }
