@@ -105,7 +105,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 				log("Matches computed [" + m.size() + "]");
 				if (cbRansac.isSelected()) {
 					if (cbIterativeRansac.isSelected()) {
-						m = ImageMatch.iterativeRansac(m);
+						m = ImageMatch.iterativeRansac(m, ImageMatchViewer.this);
 					} else {
 						m = ImageMatch.ransac(m);
 					}

@@ -33,6 +33,7 @@ import javax.imageio.ImageIO;
 
 import mpi.cbg.fly.Feature;
 import mpi.cbg.fly.SIFT;
+import plugins.nherve.toolbox.AbleToLogMessages;
 import plugins.nherve.toolbox.image.feature.SignatureDistance;
 import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.L2Distance;
@@ -192,17 +193,15 @@ public class ImageMatch {
 		return algo.getInliers();
 	}
 	
-	public static List<MyPointMatch> iterativeRansac(List<MyPointMatch> matches) {
+	public static List<MyPointMatch> iterativeRansac(List<MyPointMatch> matches, AbleToLogMessages logger) {
 		List<MyPointMatch> result = new ArrayList<MyPointMatch>();
 		List<MyPointMatch> iteration = null;
 		int group = 0;
 		
 		do {
-			MyRansac algo = new MyRansac();
-			algo.estimateModel(matches, 100f, 0.15f);
-			iteration = algo.getInliers();
+			iteration = ransac(matches);
 		
-			algo.log("RANSAC ["+group+"] : " + iteration.size());
+			logger.log("RANSAC ["+group+"] : " + iteration.size());
 			
 			for (MyPointMatch pm : iteration) {
 				pm.setGroup(group);
