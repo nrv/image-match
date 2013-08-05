@@ -42,11 +42,12 @@ public class MyRansac extends Algorithm {
 	}
 
 	public void estimateModel(List<MyPointMatch> matches, float epsilon, float minInlierRatio) {
+		inliers = new ArrayList<MyPointMatch>();
+		
 		if (matches.size() < MIN_MATCHES) {
 			return;
 		}
-
-		inliers = new ArrayList<MyPointMatch>();
+		
 		model = new MyModel();
 
 		Random rd = new Random(System.currentTimeMillis());
@@ -69,7 +70,7 @@ public class MyRansac extends Algorithm {
 				isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
 			}
 
-			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 * MIN_MATCHES) {
+			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 /*3 * MIN_MATCHES*/) {
 				model = tempModel.clone();
 				inliers.clear();
 				inliers.addAll(tempInliers);
