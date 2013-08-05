@@ -28,6 +28,7 @@ public class MyPointMatch {
 	private MyPoint p2t;
 	private double featureDistance;
 	private float distance;
+	private int group;
 
 	public MyPointMatch(MyFeature f1, MyFeature f2, double featureDistance) {
 		super();
@@ -51,6 +52,10 @@ public class MyPointMatch {
 		return featureDistance;
 	}
 
+	public int getGroup() {
+		return group;
+	}
+
 	public MyPoint getP(boolean first) {
 		return first ? p1 : p2;
 	}
@@ -69,6 +74,10 @@ public class MyPointMatch {
 
 	public MyPoint getP2t() {
 		return p2t;
+	}
+
+	public void setGroup(int group) {
+		this.group = group;
 	}
 
 }

@@ -27,7 +27,9 @@ import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.Box;
@@ -48,6 +50,7 @@ import name.herve.imagematch.gui.viewer.ImageViewerListener;
 import name.herve.imagematch.gui.viewer.ImageViewerPanel;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.gui.GUIUtil;
+import plugins.nherve.toolbox.image.DifferentColorsMap;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
@@ -100,7 +103,11 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 			if (v1.getFeatures() != null && v2.getFeatures() != null) {
 				List<MyPointMatch> m = ImageMatch.findMatches(v1.getFeatures(), v2.getFeatures());
 				log("Matches computed [" + m.size() + "]");
-				m = ImageMatch.ransac(m);
+				if (cbIterativeRansac.isSelected()) {
+					m = ImageMatch.iterativeRansac(m);
+				} else {
+					m = ImageMatch.ransac(m);
+				}
 				log("RANSAC computed [" + m.size() + "]");
 				return m;
 			}
@@ -111,8 +118,16 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		protected void done() {
 			try {
 				List<MyPointMatch> matches = get();
-				v1.setMatches(matches, true);
-				v2.setMatches(matches, false);
+				
+				Set<Integer> groups = new HashSet<Integer>();
+				for (MyPointMatch pm : matches) {
+					groups.add(pm.getGroup());
+				}
+				
+				DifferentColorsMap dcm = new DifferentColorsMap(groups.size());
+				
+				v1.setMatches(matches, dcm, true);
+				v2.setMatches(matches, dcm, false);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -182,6 +197,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	private JButton btMatch;
 	private JCheckBox cbSynchroOpacity;
 	private JCheckBox cbOnlyMatches;
+	private JCheckBox cbIterativeRansac;
 	private JRadioButton rbSift;
 	private JRadioButton rbSurf;
 	private JRadioButton rbSquare;
@@ -319,6 +335,9 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		cbOnlyMatches = new JCheckBox("Matches");
 		cbOnlyMatches.setSelected(false);
 		cbOnlyMatches.addItemListener(this);
+		
+		cbIterativeRansac = new JCheckBox("Iterative");
+		cbIterativeRansac.setSelected(false);
 
 		ButtonGroup bg1 = new ButtonGroup();
 		rbSift = new JRadioButton("SIFT");
@@ -351,7 +370,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		btLoad.addActionListener(this);
 		btMatch = new JButton("Match");
 		btMatch.addActionListener(this);
-		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
+		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbIterativeRansac, btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
 
 		frame.setLocation(100, 100);
 		frame.setVisible(true);

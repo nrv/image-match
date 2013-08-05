@@ -144,6 +144,7 @@ public class ImageMatch {
 			}
 
 			if (firstBest != null && secondBest != null && firstBest.getFeatureDistance() < DIST_THRESH * secondBest.getFeatureDistance()) {
+				firstBest.setGroup(0);
 				matches.add(firstBest);
 			}
 		}
@@ -189,6 +190,31 @@ public class ImageMatch {
 		MyRansac algo = new MyRansac();
 		algo.estimateModel(matches, 100f, 0.15f);
 		return algo.getInliers();
+	}
+	
+	public static List<MyPointMatch> iterativeRansac(List<MyPointMatch> matches) {
+		List<MyPointMatch> result = new ArrayList<MyPointMatch>();
+		List<MyPointMatch> iteration = null;
+		int group = 0;
+		
+		do {
+			MyRansac algo = new MyRansac();
+			algo.estimateModel(matches, 100f, 0.15f);
+			iteration = algo.getInliers();
+		
+			algo.log("RANSAC ["+group+"] : " + iteration.size());
+			
+			for (MyPointMatch pm : iteration) {
+				pm.setGroup(group);
+				result.add(pm);
+				matches.remove(pm);
+			}
+			
+			group++;
+			
+		} while(iteration.size() > 0);
+		
+		return result;
 	}
 
 }

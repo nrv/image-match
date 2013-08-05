@@ -24,15 +24,22 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import plugins.nherve.toolbox.Algorithm;
+
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class MyRansac {
+public class MyRansac extends Algorithm {
 	public final static int MIN_MATCHES = 2;
-	public final static int ITERATIONS = 1000;
 
+	public final static int ITERATIONS = 1000;
 	private MyModel model;
+
 	private List<MyPointMatch> inliers;
+
+	public MyRansac() {
+		super(true);
+	}
 
 	public void estimateModel(List<MyPointMatch> matches, float epsilon, float minInlierRatio) {
 		if (matches.size() < MIN_MATCHES) {
@@ -56,14 +63,10 @@ public class MyRansac {
 
 			int numInliers = 0;
 			boolean isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
-			// System.out.println("["+i+"] tempInliers - " +
-			// tempInliers.size());
 			while (isGood && numInliers < tempInliers.size()) {
 				numInliers = tempInliers.size();
 				tempModel.minimize(tempInliers);
 				isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
-				// System.out.println("["+i+"] tempInliers - " +
-				// tempInliers.size());
 			}
 
 			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 * MIN_MATCHES) {

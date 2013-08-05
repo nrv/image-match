@@ -40,6 +40,7 @@ import javax.swing.event.MouseInputListener;
 
 import name.herve.imagematch.MyFeature;
 import name.herve.imagematch.MyPointMatch;
+import plugins.nherve.toolbox.image.DifferentColorsMap;
 import plugins.nherve.toolbox.image.toolboxes.ImageTools;
 
 /**
@@ -52,6 +53,7 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 	private BufferedImage image;
 	private List<MyFeature> features;
 	private List<MyPointMatch> matches;
+	private DifferentColorsMap dcm;
 	private boolean matchFirst;
 	private BufferedImage cache;
 	private BufferedImage featuresCache;
@@ -237,14 +239,15 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		if (needMatchCacheRedraw && matches != null) {
 			matchesCache = new BufferedImage(cacheWidth, cacheHeight, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = (Graphics2D) matchesCache.getGraphics();
-			g2.setColor(Color.GREEN);
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			if (useCircle) {
 				for (MyPointMatch pm : matches) {
+					g2.setColor(dcm.get(pm.getGroup()));
 					g2.fillOval((int) (pm.getP(matchFirst).getX() * zoom) - 4, (int) (pm.getP(matchFirst).getY() * zoom) - 4, 9, 9);
 				}
 			} else {
 				for (MyPointMatch pm : matches) {
+					g2.setColor(dcm.get(pm.getGroup()));
 					g2.fillRect((int) (pm.getP(matchFirst).getX() * zoom) - 4, (int) (pm.getP(matchFirst).getY() * zoom) - 4, 9, 9);
 				}
 			}
@@ -320,9 +323,10 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		resetZoom();
 	}
 
-	public void setMatches(List<MyPointMatch> matches, boolean matchFirst) {
+	public void setMatches(List<MyPointMatch> matches, DifferentColorsMap dcm, boolean matchFirst) {
 		this.matches = matches;
 		this.matchFirst = matchFirst;
+		this.dcm = dcm;
 		matchesCache = null;
 		needMatchCacheRedraw = true;
 		repaint();

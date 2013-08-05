@@ -38,6 +38,7 @@ import javax.swing.event.ChangeListener;
 import name.herve.imagematch.MyFeature;
 import name.herve.imagematch.MyPointMatch;
 import plugins.nherve.toolbox.gui.GUIUtil;
+import plugins.nherve.toolbox.image.DifferentColorsMap;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
@@ -154,8 +155,8 @@ public class ImageViewerPanel extends JPanel implements ActionListener, ImageVie
 		this.label = label;
 	}
 
-	public void setMatches(List<MyPointMatch> matches, boolean matchFirst) {
-		viewer.setMatches(matches, matchFirst);
+	public void setMatches(List<MyPointMatch> matches, DifferentColorsMap dcm, boolean matchFirst) {
+		viewer.setMatches(matches, dcm, matchFirst);
 	}
 
 	public void setOnlyMatches(boolean onlyMatches) {

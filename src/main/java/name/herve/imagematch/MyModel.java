@@ -145,7 +145,6 @@ public class MyModel implements Cloneable {
 
 		for (MyPointMatch m : matches) {
 			m.applyModel(this);
-			// System.out.println("      - " + m.getDistance());
 			if (m.getDistance() < epsilon) {
 				kept.add(m);
 			}
