@@ -154,8 +154,8 @@ public class ImageMatch {
 
 	public static BufferedImage load(File f) throws IOException {
 		BufferedImage img = ImageIO.read(f);
-		// return img;
-		return ImageTools.resize(img, (int) (img.getWidth() * RATIO), (int) (img.getHeight() * RATIO), true);
+		return img;
+		//return ImageTools.resize(img, (int) (img.getWidth() * RATIO), (int) (img.getHeight() * RATIO), true);
 	}
 
 	public static List<MyFeature> processSIFT(BufferedImage img) throws IOException {

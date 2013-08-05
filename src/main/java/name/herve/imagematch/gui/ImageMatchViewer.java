@@ -103,12 +103,14 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 			if (v1.getFeatures() != null && v2.getFeatures() != null) {
 				List<MyPointMatch> m = ImageMatch.findMatches(v1.getFeatures(), v2.getFeatures());
 				log("Matches computed [" + m.size() + "]");
-				if (cbIterativeRansac.isSelected()) {
-					m = ImageMatch.iterativeRansac(m);
-				} else {
-					m = ImageMatch.ransac(m);
+				if (cbRansac.isSelected()) {
+					if (cbIterativeRansac.isSelected()) {
+						m = ImageMatch.iterativeRansac(m);
+					} else {
+						m = ImageMatch.ransac(m);
+					}
+					log("RANSAC computed [" + m.size() + "]");
 				}
-				log("RANSAC computed [" + m.size() + "]");
 				return m;
 			}
 			return null;
@@ -118,14 +120,14 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		protected void done() {
 			try {
 				List<MyPointMatch> matches = get();
-				
+
 				Set<Integer> groups = new HashSet<Integer>();
 				for (MyPointMatch pm : matches) {
 					groups.add(pm.getGroup());
 				}
-				
+
 				DifferentColorsMap dcm = new DifferentColorsMap(groups.size());
-				
+
 				v1.setMatches(matches, dcm, true);
 				v2.setMatches(matches, dcm, false);
 			} catch (InterruptedException e) {
@@ -197,6 +199,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	private JButton btMatch;
 	private JCheckBox cbSynchroOpacity;
 	private JCheckBox cbOnlyMatches;
+	private JCheckBox cbRansac;
 	private JCheckBox cbIterativeRansac;
 	private JRadioButton rbSift;
 	private JRadioButton rbSurf;
@@ -335,7 +338,10 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		cbOnlyMatches = new JCheckBox("Matches");
 		cbOnlyMatches.setSelected(false);
 		cbOnlyMatches.addItemListener(this);
-		
+
+		cbRansac = new JCheckBox("Ransac");
+		cbRansac.setSelected(true);
+
 		cbIterativeRansac = new JCheckBox("Iterative");
 		cbIterativeRansac.setSelected(false);
 
@@ -370,7 +376,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		btLoad.addActionListener(this);
 		btMatch = new JButton("Match");
 		btMatch.addActionListener(this);
-		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbIterativeRansac, btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
+		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbIterativeRansac, cbRansac, btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
 
 		frame.setLocation(100, 100);
 		frame.setVisible(true);
