@@ -1,3 +1,21 @@
+/*
+ * Copyright 2013 Nicolas HERVE.
+ * 
+ * This file is part of image-match
+ * 
+ * image-match is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * image-match is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with image-match. If not, see <http://www.gnu.org/licenses/>.
+ */
 package name.herve.imagematch.gui;
 
 import java.awt.BorderLayout;
@@ -31,6 +49,9 @@ import name.herve.imagematch.gui.viewer.ImageViewerPanel;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.gui.GUIUtil;
 
+/**
+ * @author Nicolas HERVE - n.herve@laposte.net
+ */
 public class ImageMatchViewer extends Algorithm implements ActionListener, ImageViewerListener, FileChooserListener, ItemListener {
 	private class ImageLoader extends SwingWorker<BufferedImage, Object> {
 		private File f;
@@ -56,7 +77,6 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		protected void done() {
 			try {
 				v.setImage(get(), f.getName());
-				v.setFeatures(null);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -77,7 +97,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 
 		@Override
 		protected List<MyPointMatch> doInBackground() throws Exception {
-			if ((v1.getFeatures() != null) && (v2.getFeatures() != null)) {
+			if (v1.getFeatures() != null && v2.getFeatures() != null) {
 				List<MyPointMatch> m = ImageMatch.findMatches(v1.getFeatures(), v2.getFeatures());
 				log("Matches computed [" + m.size() + "]");
 				m = ImageMatch.ransac(m);
@@ -85,6 +105,19 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 				return m;
 			}
 			return null;
+		}
+
+		@Override
+		protected void done() {
+			try {
+				List<MyPointMatch> matches = get();
+				v1.setMatches(matches, true);
+				v2.setMatches(matches, false);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -127,11 +160,16 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	 */
 	public static void main(String[] args) {
 		ImageMatchViewer application = new ImageMatchViewer();
-		String defaultLocation = null;
-		if (args.length > 0) {
-			defaultLocation = args[0];
+		String defaultLocation1 = null;
+		String defaultLocation2 = null;
+		if (args.length == 1) {
+			defaultLocation1 = args[0];
+			defaultLocation2 = args[0];
+		} else if (args.length == 2) {
+			defaultLocation1 = args[0];
+			defaultLocation2 = args[1];
 		}
-		application.startInterface(defaultLocation);
+		application.startInterface(defaultLocation1, defaultLocation2);
 	}
 
 	private FileChooserWithTextField fc1;
@@ -139,9 +177,11 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	private ImageViewerPanel iv1;
 	private ImageViewerPanel iv2;
 
+	private JButton btLoad;
 	private JButton btCompute;
 	private JButton btMatch;
 	private JCheckBox cbSynchroOpacity;
+	private JCheckBox cbOnlyMatches;
 	private JRadioButton rbSift;
 	private JRadioButton rbSurf;
 	private JRadioButton rbSquare;
@@ -163,10 +203,10 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 
 		if (o instanceof JRadioButton) {
 			JRadioButton b = (JRadioButton) e.getSource();
-			if ((b == rbCircle) || (b == rbSquare)) {
+			if (b == rbCircle || b == rbSquare) {
 				iv1.setUseCircle(rbCircle.isSelected());
 				iv2.setUseCircle(rbCircle.isSelected());
-			} else if ((b == rbFill) || (b == rbBorder)) {
+			} else if (b == rbFill || b == rbBorder) {
 				iv1.setFill(rbFill.isSelected());
 				iv2.setFill(rbFill.isSelected());
 			}
@@ -179,6 +219,9 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 				computePOI();
 			} else if (b == btMatch) {
 				computeMatch();
+			} else if (b == btLoad) {
+				new ImageLoader(fc1.getChoosenFile(), iv1).execute();
+				new ImageLoader(fc2.getChoosenFile(), iv2).execute();
 			}
 			return;
 		}
@@ -224,6 +267,13 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 					iv2.setOpacity(iv1.getOpacity());
 				}
 			}
+
+			if (c == cbOnlyMatches) {
+				iv1.setOnlyMatches(cbOnlyMatches.isSelected());
+				iv2.setOnlyMatches(cbOnlyMatches.isSelected());
+				iv1.repaint();
+				iv2.repaint();
+			}
 		}
 	}
 
@@ -242,7 +292,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	public void poiChanged(ImageViewer v) {
 	}
 
-	public void startInterface(String defaultLocation) {
+	public void startInterface(String defaultLocation1, String defaultLocation2) {
 		// JFrame.setDefaultLookAndFeelDecorated(true);
 		JFrame frame = new JFrame("Image match viewer");
 		frame.setSize(1200, 600);
@@ -250,9 +300,9 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		Container mainPanel = frame.getContentPane();
 		mainPanel.setLayout(new BorderLayout());
 
-		fc1 = new FileChooserWithTextField("Image 1", defaultLocation);
+		fc1 = new FileChooserWithTextField("Image 1", defaultLocation1);
 		fc1.addFileChooserListener(this);
-		fc2 = new FileChooserWithTextField("Image 2", defaultLocation);
+		fc2 = new FileChooserWithTextField("Image 2", defaultLocation2);
 		fc2.addFileChooserListener(this);
 		mainPanel.add(GUIUtil.createLineBoxPanel(fc1, Box.createHorizontalStrut(10), fc2), BorderLayout.PAGE_START);
 
@@ -265,6 +315,10 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		cbSynchroOpacity = new JCheckBox("Synchro");
 		cbSynchroOpacity.setSelected(false);
 		cbSynchroOpacity.addItemListener(this);
+
+		cbOnlyMatches = new JCheckBox("Matches");
+		cbOnlyMatches.setSelected(false);
+		cbOnlyMatches.addItemListener(this);
 
 		ButtonGroup bg1 = new ButtonGroup();
 		rbSift = new JRadioButton("SIFT");
@@ -293,9 +347,11 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 
 		btCompute = new JButton("Compute");
 		btCompute.addActionListener(this);
+		btLoad = new JButton("Load");
+		btLoad.addActionListener(this);
 		btMatch = new JButton("Match");
 		btMatch.addActionListener(this);
-		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), btMatch, Box.createHorizontalStrut(10), btCompute), BorderLayout.PAGE_END);
+		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
 
 		frame.setLocation(100, 100);
 		frame.setVisible(true);

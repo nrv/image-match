@@ -16,6 +16,23 @@ import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 public class MatchLogos {
 	private final static String ROOT = "/home/nherve/Travail/Data/logos";
 
+	public static void main(String[] args) {
+		try {
+			new MatchLogos().process(ROOT);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SignatureException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private BufferedImage deepCopy(BufferedImage bi) {
+		ColorModel cm = bi.getColorModel();
+		boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+		WritableRaster raster = bi.copyData(null);
+		return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+	}
+
 	private List<File> getFiles(File dir) {
 		if (dir.exists() && dir.isDirectory()) {
 			File[] files = dir.listFiles(new FileFilter() {
@@ -29,19 +46,12 @@ public class MatchLogos {
 		}
 		return null;
 	}
-	
-	private BufferedImage deepCopy(BufferedImage bi) {
-		 ColorModel cm = bi.getColorModel();
-		 boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
-		 WritableRaster raster = bi.copyData(null);
-		 return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
-		}
 
 	public void process(String r) throws IOException, SignatureException {
 		File root = new File(r);
 		File out = new File(root, "matches");
 		out.mkdirs();
-		
+
 		List<File> files = getFiles(root);
 
 		Map<File, List<MyFeature>> features = new HashMap<File, List<MyFeature>>();
@@ -60,26 +70,16 @@ public class MatchLogos {
 				List<MyPointMatch> m = ImageMatch.findMatches(features.get(files.get(f1)), features.get(files.get(f2)));
 				m = ImageMatch.ransac(m);
 				if (m != null && m.size() > 0) {
-					System.out.println("["+f1+" / "+f2+"] [" + m.size() + "] " + files.get(f1).getName() + "  <->  " + files.get(f2).getName());
+					System.out.println("[" + f1 + " / " + f2 + "] [" + m.size() + "] " + files.get(f1).getName() + "  <->  " + files.get(f2).getName());
 					BufferedImage img1 = deepCopy(images.get(files.get(f1)));
 					BufferedImage img2 = deepCopy(images.get(files.get(f2)));
-					
-					//ImageMatch.drawPoints(img1, features.get(files.get(f1)));
-					//ImageMatch.drawPoints(img2, features.get(files.get(f2)));
-					
+
+					// ImageMatch.drawPoints(img1, features.get(files.get(f1)));
+					// ImageMatch.drawPoints(img2, features.get(files.get(f2)));
+
 					ImageMatch.drawMatches(img1, img2, m, new File(out, f1 + "-" + f2 + ".jpg"));
 				}
 			}
-		}
-	}
-
-	public static void main(String[] args) {
-		try {
-			new MatchLogos().process(ROOT);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SignatureException e) {
-			e.printStackTrace();
 		}
 	}
 

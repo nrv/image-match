@@ -1,3 +1,21 @@
+/*
+ * Copyright 2013 Nicolas HERVE.
+ * 
+ * This file is part of image-match
+ * 
+ * image-match is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * image-match is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with image-match. If not, see <http://www.gnu.org/licenses/>.
+ */
 package name.herve.imagematch;
 
 import java.awt.Color;
@@ -25,6 +43,9 @@ import plugins.nherve.toolbox.image.toolboxes.ImageTools;
 import com.stromberglabs.jopensurf.SURFInterestPoint;
 import com.stromberglabs.jopensurf.Surf;
 
+/**
+ * @author Nicolas HERVE - n.herve@laposte.net
+ */
 public class ImageMatch {
 
 	private final static double RATIO = 0.5;
@@ -122,7 +143,7 @@ public class ImageMatch {
 				}
 			}
 
-			if ((firstBest != null) && (secondBest != null) && (firstBest.getFeatureDistance() < (DIST_THRESH * secondBest.getFeatureDistance()))) {
+			if (firstBest != null && secondBest != null && firstBest.getFeatureDistance() < DIST_THRESH * secondBest.getFeatureDistance()) {
 				matches.add(firstBest);
 			}
 		}

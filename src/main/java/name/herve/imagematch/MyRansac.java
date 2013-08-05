@@ -1,3 +1,21 @@
+/*
+ * Copyright 2013 Nicolas HERVE.
+ * 
+ * This file is part of image-match
+ * 
+ * image-match is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * image-match is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with image-match. If not, see <http://www.gnu.org/licenses/>.
+ */
 package name.herve.imagematch;
 
 import java.util.ArrayList;
@@ -6,6 +24,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * @author Nicolas HERVE - n.herve@laposte.net
+ */
 public class MyRansac {
 	public final static int MIN_MATCHES = 2;
 	public final static int ITERATIONS = 1000;
@@ -37,7 +58,7 @@ public class MyRansac {
 			boolean isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
 			// System.out.println("["+i+"] tempInliers - " +
 			// tempInliers.size());
-			while (isGood && (numInliers < tempInliers.size())) {
+			while (isGood && numInliers < tempInliers.size()) {
 				numInliers = tempInliers.size();
 				tempModel.minimize(tempInliers);
 				isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
@@ -45,7 +66,7 @@ public class MyRansac {
 				// tempInliers.size());
 			}
 
-			if (isGood && tempModel.betterThan(model) && (tempInliers.size() >= (3 * MIN_MATCHES))) {
+			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 * MIN_MATCHES) {
 				model = tempModel.clone();
 				inliers.clear();
 				inliers.addAll(tempInliers);

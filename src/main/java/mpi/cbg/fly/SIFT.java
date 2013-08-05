@@ -29,97 +29,133 @@ package mpi.cbg.fly;
  * @version 0.1
  */
 
-import java.util.Vector;
-import java.util.List;
-import java.util.Collections;
-
 import java.awt.Image;
+import java.util.Collections;
+import java.util.Vector;
 
-public class SIFT
-{
-    // steps
-    private static int steps = 5;
-    public static int steps() { return steps; }
-    public static void set_steps(int s) { steps=s; }
+public class SIFT {
+	// steps
+	private static int steps = 5;
+	// initial sigma
+	private static float initial_sigma = 1.6f;
+	// feature descriptor size
+	private static int fdsize = 4;
 
-    // initial sigma
-    private static float initial_sigma = 1.6f;
-    public static float initial_sigma() { return initial_sigma; }
-    public static void set_initial_sigma(float is) { initial_sigma=is; }
+	// feature descriptor orientation bins
+	private static int fdbins = 8;
+	// size restrictions for scale octaves, use octaves < max_size and >
+	// min_size only
+	private static int min_size = 64;
+	private static int max_size = 1024;
 
-    // feature descriptor size
-    private static int fdsize = 4;
-    public static int fdsize() { return fdsize; }
-    public static void set_fdsize(int fs) { fdsize=fs; }
+	public static int fdbins() {
+		return fdbins;
+	}
 
-    // feature descriptor orientation bins
-    private static int fdbins = 8;
-    public static int fdbins() { return fdbins; }
-    public static void fdbins(int fb) { fdbins=fb; }
+	public static void fdbins(int fb) {
+		fdbins = fb;
+	}
 
-    // size restrictions for scale octaves, use octaves < max_size and > min_size only
-    private static int min_size = 64;
-    public static int min_size() { return min_size(); }
-    public static void set_min_size(int ms) { min_size=ms; }
+	public static int fdsize() {
+		return fdsize;
+	}
 
-    private static int max_size = 1024;
-    public static int max_size() { return max_size(); }
-    public static void set_max_size(int ms) { max_size=ms; }
+	public static Vector<Feature> getFeatures(FloatArray2D fa) {
+		Vector<Feature> fs1;
 
-    /**
-     * @author Jonathan ODUL 2009
-     * @link http://www.jidul.com
-     * @version 1.0
-     * @param w width of the picture
-     * @param h height of the picture
-     * @param pixels[] tab of pixels rgb color (ex: red 0xff0000)
-     * @return vector of features of the picture
-     */
+		FloatArray2DSIFT sift = new FloatArray2DSIFT(fdsize, fdbins);
 
-    public static Vector< Feature > getFeatures(int w, int h, int pixels[])
-    {
-        FloatArray2D fa = ImageArrayConverter.ArrayToFloatArray2D( w, h, pixels );
+		Filter.enhance(fa, 1.0f);
 
-        return getFeatures(fa);
-    }
-    
-    /**
-     * @author Jonathan ODUL 2009
-     * @link http://www.jidul.com
-     * @version 1.0
-     * @param imp picture
-     * @return vector of features of the picture
-     */
-	 
-    public static Vector< Feature > getFeatures(Image imp)
-    {
-        if (imp==null)  { System.err.println( "There are no images open" ); return null; }
+		fa = Filter.computeGaussianFastMirror(fa, (float) Math.sqrt(initial_sigma * initial_sigma - 0.25));
 
-        FloatArray2D fa = ImageArrayConverter.ImageToFloatArray2D( imp );
+		long start_time = System.currentTimeMillis();
+		// System.out.print( "processing SIFT ..." );
+		sift.init(fa, steps, initial_sigma, min_size, max_size);
+		fs1 = sift.run(max_size);
+		Collections.sort(fs1);
+		// System.out.println( " took " + ( System.currentTimeMillis() -
+		// start_time ) + "ms" );
 
-        return getFeatures(fa);
-    }
+		// System.out.println( fs1.size() + " features identified and processed"
+		// );
 
-    public static Vector< Feature > getFeatures(FloatArray2D fa)
-    {
-        Vector< Feature > fs1;
+		return fs1;
+	}
 
-        FloatArray2DSIFT sift = new FloatArray2DSIFT( fdsize, fdbins );
-        
-        Filter.enhance( fa, 1.0f );
+	/**
+	 * @author Jonathan ODUL 2009
+	 * @link http://www.jidul.com
+	 * @version 1.0
+	 * @param imp
+	 *            picture
+	 * @return vector of features of the picture
+	 */
 
-        fa = Filter.computeGaussianFastMirror( fa, ( float )Math.sqrt( initial_sigma * initial_sigma - 0.25 ) );
+	public static Vector<Feature> getFeatures(Image imp) {
+		if (imp == null) {
+			System.err.println("There are no images open");
+			return null;
+		}
 
-        long start_time = System.currentTimeMillis();
-       // System.out.print( "processing SIFT ..." );
-        sift.init( fa, steps, initial_sigma, min_size, max_size );
-        fs1 = sift.run( max_size );
-        Collections.sort( fs1 );
-      //  System.out.println( " took " + ( System.currentTimeMillis() - start_time ) + "ms" );
+		FloatArray2D fa = ImageArrayConverter.ImageToFloatArray2D(imp);
 
-        //System.out.println( fs1.size() + " features identified and processed" );
+		return getFeatures(fa);
+	}
 
-        return fs1;
-    }
+	/**
+	 * @author Jonathan ODUL 2009
+	 * @link http://www.jidul.com
+	 * @version 1.0
+	 * @param w
+	 *            width of the picture
+	 * @param h
+	 *            height of the picture
+	 * @param pixels
+	 *            [] tab of pixels rgb color (ex: red 0xff0000)
+	 * @return vector of features of the picture
+	 */
+
+	public static Vector<Feature> getFeatures(int w, int h, int pixels[]) {
+		FloatArray2D fa = ImageArrayConverter.ArrayToFloatArray2D(w, h, pixels);
+
+		return getFeatures(fa);
+	}
+
+	public static float initial_sigma() {
+		return initial_sigma;
+	}
+
+	public static int max_size() {
+		return max_size();
+	}
+
+	public static int min_size() {
+		return min_size();
+	}
+
+	public static void set_fdsize(int fs) {
+		fdsize = fs;
+	}
+
+	public static void set_initial_sigma(float is) {
+		initial_sigma = is;
+	}
+
+	public static void set_max_size(int ms) {
+		max_size = ms;
+	}
+
+	public static void set_min_size(int ms) {
+		min_size = ms;
+	}
+
+	public static void set_steps(int s) {
+		steps = s;
+	}
+
+	public static int steps() {
+		return steps;
+	}
 
 }

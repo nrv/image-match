@@ -6,13 +6,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import name.herve.imagematch.ImageMatch;
-import name.herve.imagematch.MyFeature;
-import name.herve.imagematch.MyPointMatch;
-
-
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-
 
 public class TestPoints {
 	private final static String ROOT = "/home/nherve/Travail/Data/Perso/data/";
@@ -22,8 +16,6 @@ public class TestPoints {
 	private final static String IMAGE_FILE_2 = ROOT + "IMG_9804.JPG";
 	// private final static String IMAGE_FILE_1 = ROOT + "IMG_0443.JPG";
 	// private final static String IMAGE_FILE_2 = ROOT + "IMG_0444.JPG";
-
-
 
 	private final static DecimalFormat DF = new DecimalFormat("0.0000");
 

@@ -7,12 +7,12 @@ All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither Andrew Stromberg nor the
+ * Neither Andrew Stromberg nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
@@ -33,30 +33,90 @@ package com.stromberglabs.jopensurf;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class SURFInterestPoint implements Serializable,Cloneable,InterestPoint {
+public class SURFInterestPoint implements Serializable, Cloneable, InterestPoint {
 	private static final long serialVersionUID = 1L;
 
-	private float mX,mY;
-	
+	private float mX, mY;
+
 	private float mScale;
-	
+
 	private float mOrientation;
-	
+
 	private int mLaplacian;
-	
+
 	private float[] mDescriptor;
-	
-	private float mDx,mDy;
-	
+
+	private float mDx, mDy;
+
 	private int mClusterIndex;
-	
-	public SURFInterestPoint(float x, float y, float scale, int laplacian){
+
+	public SURFInterestPoint(float x, float y, float scale, int laplacian) {
 		mX = x;
 		mY = y;
 		mScale = scale;
 		mLaplacian = laplacian;
 	}
-	
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
+	public int getClusterIndex() {
+		return mClusterIndex;
+	}
+
+	public Float getCoord(int dimension) {
+		return mDescriptor[dimension];
+	}
+
+	public float[] getDescriptor() {
+		return mDescriptor;
+	}
+
+	public int getDimensions() {
+		return mDescriptor.length;
+	}
+
+	public double getDistance(InterestPoint point) {
+		double sum = 0;
+		if (point.getLocation() == null || mDescriptor == null) {
+			return Float.MAX_VALUE;
+		}
+		for (int i = 0; i < mDescriptor.length; i++) {
+			double diff = mDescriptor[i] - point.getLocation()[i];
+			sum += diff * diff;
+		}
+		return Math.sqrt(sum);
+	}
+
+	public float getDx() {
+		return mDx;
+	}
+
+	public float getDy() {
+		return mDy;
+	}
+
+	public int getLaplacian() {
+		return mLaplacian;
+	}
+
+	/**
+	 * To take care of the InterestPoint Interface
+	 */
+	public float[] getLocation() {
+		return mDescriptor;
+	}
+
+	public float getOrientation() {
+		return mOrientation;
+	}
+
+	public float getScale() {
+		return mScale;
+	}
+
 	public float getX() {
 		return mX;
 	}
@@ -65,100 +125,43 @@ public class SURFInterestPoint implements Serializable,Cloneable,InterestPoint {
 		return mY;
 	}
 
-	public float getScale() {
-		return mScale;
+	public boolean isEquivalentTo(SURFInterestPoint point) {
+		boolean isEquivalent = true;
+
+		isEquivalent &= mX == point.getX();
+		isEquivalent &= mY == point.getY();
+
+		isEquivalent &= mDx == point.getDx();
+		isEquivalent &= mDy == point.getDy();
+
+		isEquivalent &= mOrientation == point.getOrientation();
+
+		isEquivalent &= mScale == point.getScale();
+
+		isEquivalent &= mLaplacian == point.getLaplacian();
+
+		isEquivalent &= Arrays.equals(mDescriptor, point.getDescriptor());
+
+		return isEquivalent;
 	}
 
-	public float getOrientation() {
-		return mOrientation;
-	}
-
-	public void setOrientation(float orientation) {
-		mOrientation = orientation;
-	}
-
-	public int getLaplacian() {
-		return mLaplacian;
-	}
-
-	public float[] getDescriptor() {
-		return mDescriptor;
-	}
-	
-	/**
-	 * To take care of the InterestPoint Interface
-	 */
-	public float[] getLocation() {
-		return mDescriptor;
+	public void setClusterIndex(int clusterIndex) {
+		mClusterIndex = clusterIndex;
 	}
 
 	public void setDescriptor(float[] descriptor) {
 		mDescriptor = descriptor;
 	}
 
-	public float getDx() {
-		return mDx;
-	}
-
 	public void setDx(float dx) {
 		mDx = dx;
-	}
-
-	public float getDy() {
-		return mDy;
 	}
 
 	public void setDy(float dy) {
 		mDy = dy;
 	}
 
-	public int getClusterIndex() {
-		return mClusterIndex;
+	public void setOrientation(float orientation) {
+		mOrientation = orientation;
 	}
-
-	public void setClusterIndex(int clusterIndex) {
-		mClusterIndex = clusterIndex;
-	}
-	
-	public double getDistance(InterestPoint point){
-		double sum = 0;
-		if ( point.getLocation() == null || mDescriptor == null ) return Float.MAX_VALUE;
-		for ( int i = 0; i < mDescriptor.length; i++ ){
-			double diff = mDescriptor[i] - point.getLocation()[i];
-			sum += diff*diff; 
-		}
-		return (double)Math.sqrt(sum);
-	}
-
-	public Float getCoord(int dimension) {
-		return mDescriptor[dimension];
-	}
-
-	public int getDimensions() {
-		return mDescriptor.length;
-	}
-
-    public Object clone() throws CloneNotSupportedException {
-            return super.clone();
-    }
-    
-    public boolean isEquivalentTo(SURFInterestPoint point){
-    	boolean isEquivalent = true;
-    	
-    	isEquivalent &= mX == point.getX();
-    	isEquivalent &= mY == point.getY();
-    	
-    	isEquivalent &= mDx == point.getDx();
-    	isEquivalent &= mDy == point.getDy();
-    	
-    	isEquivalent &= mOrientation == point.getOrientation();
-    	
-    	isEquivalent &= mScale == point.getScale();
-    	
-    	isEquivalent &= mLaplacian == point.getLaplacian();
-    	
-    	isEquivalent &= Arrays.equals(mDescriptor,point.getDescriptor());
-    	
-    	return isEquivalent;
-    }
 }

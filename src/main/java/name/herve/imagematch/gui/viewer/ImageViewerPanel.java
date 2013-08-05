@@ -1,3 +1,21 @@
+/*
+ * Copyright 2013 Nicolas HERVE.
+ * 
+ * This file is part of image-match
+ * 
+ * image-match is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * image-match is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with image-match. If not, see <http://www.gnu.org/licenses/>.
+ */
 package name.herve.imagematch.gui.viewer;
 
 import java.awt.BorderLayout;
@@ -18,8 +36,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import name.herve.imagematch.MyFeature;
+import name.herve.imagematch.MyPointMatch;
 import plugins.nherve.toolbox.gui.GUIUtil;
 
+/**
+ * @author Nicolas HERVE - n.herve@laposte.net
+ */
 public class ImageViewerPanel extends JPanel implements ActionListener, ImageViewerListener, ChangeListener {
 	private static final DecimalFormat ZOOM_DF = new DecimalFormat("000");
 	private static final DecimalFormat POI_DF = new DecimalFormat("0000");
@@ -130,6 +152,14 @@ public class ImageViewerPanel extends JPanel implements ActionListener, ImageVie
 	public void setImage(BufferedImage image, String label) {
 		viewer.setImage(image);
 		this.label = label;
+	}
+
+	public void setMatches(List<MyPointMatch> matches, boolean matchFirst) {
+		viewer.setMatches(matches, matchFirst);
+	}
+
+	public void setOnlyMatches(boolean onlyMatches) {
+		viewer.setOnlyMatches(onlyMatches);
 	}
 
 	public void setOpacity(float o) {

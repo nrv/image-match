@@ -1,3 +1,21 @@
+/*
+ * Copyright 2013 Nicolas HERVE.
+ * 
+ * This file is part of image-match
+ * 
+ * image-match is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * image-match is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with image-match. If not, see <http://www.gnu.org/licenses/>.
+ */
 package name.herve.imagematch.gui.viewer;
 
 import java.awt.AlphaComposite;
@@ -21,18 +39,26 @@ import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
 import name.herve.imagematch.MyFeature;
+import name.herve.imagematch.MyPointMatch;
 import plugins.nherve.toolbox.image.toolboxes.ImageTools;
 
+/**
+ * @author Nicolas HERVE - n.herve@laposte.net
+ */
 public class ImageViewer extends JComponent implements MouseWheelListener, MouseInputListener, ComponentListener {
 	private static final long serialVersionUID = 5321795190135695790L;
 
 	private Set<ImageViewerListener> listeners;
 	private BufferedImage image;
 	private List<MyFeature> features;
+	private List<MyPointMatch> matches;
+	private boolean matchFirst;
 	private BufferedImage cache;
 	private BufferedImage featuresCache;
+	private BufferedImage matchesCache;
 	private boolean useCircle;
 	private boolean fill;
+	private boolean onlyMatches;
 	private int cacheWidth;
 	private int cacheHeight;
 	private int cacheXOffset;
@@ -41,6 +67,7 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 	private float opacity;
 	private boolean needCacheRedraw;
 	private boolean needFeatureCacheRedraw;
+	private boolean needMatchCacheRedraw;
 	private int lastX;
 	private int lastY;
 
@@ -103,6 +130,10 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		return zoom;
 	}
 
+	public boolean isOnlyMatches() {
+		return onlyMatches;
+	}
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
@@ -151,7 +182,7 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		if (!e.isConsumed()) {
-			zoom += (e.getWheelRotation() / 10f);
+			zoom += e.getWheelRotation() / 10f;
 			if (zoom < 0.1f) {
 				zoom = 0.1f;
 			}
@@ -167,12 +198,12 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 
 	@Override
 	public void paintComponent(Graphics g) {
-		if (needCacheRedraw && (image != null)) {
+		if (needCacheRedraw && image != null) {
 			cache = ImageTools.resize(image, cacheWidth, cacheHeight);
 			needCacheRedraw = false;
 		}
 
-		if (needFeatureCacheRedraw && (features != null)) {
+		if (needFeatureCacheRedraw && features != null) {
 			featuresCache = new BufferedImage(cacheWidth, cacheHeight, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = (Graphics2D) featuresCache.getGraphics();
 			g2.setColor(Color.RED);
@@ -203,16 +234,42 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 			needFeatureCacheRedraw = false;
 		}
 
+		if (needMatchCacheRedraw && matches != null) {
+			matchesCache = new BufferedImage(cacheWidth, cacheHeight, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2 = (Graphics2D) matchesCache.getGraphics();
+			g2.setColor(Color.GREEN);
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			if (useCircle) {
+				for (MyPointMatch pm : matches) {
+					g2.fillOval((int) (pm.getP(matchFirst).getX() * zoom) - 4, (int) (pm.getP(matchFirst).getY() * zoom) - 4, 9, 9);
+				}
+			} else {
+				for (MyPointMatch pm : matches) {
+					g2.fillRect((int) (pm.getP(matchFirst).getX() * zoom) - 4, (int) (pm.getP(matchFirst).getY() * zoom) - 4, 9, 9);
+				}
+			}
+
+			g2.dispose();
+			needFeatureCacheRedraw = false;
+		}
+
 		if (cache != null) {
 			Graphics2D g2 = (Graphics2D) g;
-			int xo = cacheXOffset + ((getWidth() - cacheWidth) / 2);
-			int yo = cacheYOffset + ((getHeight() - cacheHeight) / 2);
+			int xo = cacheXOffset + (getWidth() - cacheWidth) / 2;
+			int yo = cacheYOffset + (getHeight() - cacheHeight) / 2;
 			g2.drawImage(cache, xo, yo, null);
 
-			if (featuresCache != null) {
+			if (featuresCache != null && !onlyMatches) {
 				Composite bck = g2.getComposite();
 				g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
 				g2.drawImage(featuresCache, xo, yo, null);
+				g2.setComposite(bck);
+			}
+
+			if (matchesCache != null) {
+				Composite bck = g2.getComposite();
+				g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+				g2.drawImage(matchesCache, xo, yo, null);
 				g2.setComposite(bck);
 			}
 
@@ -242,6 +299,11 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 		this.features = features;
 		featuresCache = null;
 		needFeatureCacheRedraw = true;
+
+		this.matches = null;
+		matchesCache = null;
+		needMatchCacheRedraw = true;
+
 		firePOIChangedEvent();
 		repaint();
 	}
@@ -254,7 +316,20 @@ public class ImageViewer extends JComponent implements MouseWheelListener, Mouse
 
 	public void setImage(BufferedImage image) {
 		this.image = image;
+		setFeatures(null);
 		resetZoom();
+	}
+
+	public void setMatches(List<MyPointMatch> matches, boolean matchFirst) {
+		this.matches = matches;
+		this.matchFirst = matchFirst;
+		matchesCache = null;
+		needMatchCacheRedraw = true;
+		repaint();
+	}
+
+	public void setOnlyMatches(boolean onlyMatches) {
+		this.onlyMatches = onlyMatches;
 	}
 
 	public void setOpacity(float opacity) {

@@ -1,4 +1,4 @@
 image-match
 ===========
 
-POI match tests
+A simple Point of Interests matching application.
