@@ -22,6 +22,8 @@ package name.herve.imagematch.impl;
  * @author Nicolas HERVE - n.herve@laposte.net
  */
 public class MyPointMatch {
+	private int id1;
+	private int id2;
 	private MyPoint p1;
 	private MyPoint p2;
 	private MyPoint p1t;
@@ -32,10 +34,16 @@ public class MyPointMatch {
 
 	public MyPointMatch(MyFeature f1, MyFeature f2, double featureDistance) {
 		super();
-		p1 = f1.getPoint();
-		p2 = f2.getPoint();
-		p1t = p1.clone();
-		p2t = p2.clone();
+		if (f1 != null) {
+			id1 = f1.getId();
+			p1 = f1.getPoint();
+			p1t = p1.clone();
+		}
+		if (f2 != null) {
+			id2 = f2.getId();
+			p2 = f2.getPoint();
+			p2t = p2.clone();
+		}
 		this.featureDistance = featureDistance;
 	}
 
@@ -78,6 +86,14 @@ public class MyPointMatch {
 
 	public void setGroup(int group) {
 		this.group = group;
+	}
+
+	public int getId1() {
+		return id1;
+	}
+
+	public int getId2() {
+		return id2;
 	}
 
 }

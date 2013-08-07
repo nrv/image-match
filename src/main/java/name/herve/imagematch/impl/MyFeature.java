@@ -26,29 +26,33 @@ import com.stromberglabs.jopensurf.SURFInterestPoint;
  * @author Nicolas HERVE - n.herve@laposte.net
  */
 public class MyFeature {
+	private int id;
 	private float[] desc;
 	private float orientation;
 	private float scale;
 	private MyPoint point;
 
-	public MyFeature(Feature f) {
+	public MyFeature(Feature f, int id) {
 		super();
+		this.id = id;
 		point = new MyPoint(f.location[0], f.location[1]);
 		orientation = f.orientation;
 		scale = f.scale;
 		desc = f.descriptor;
 	}
 
-	public MyFeature(SURFInterestPoint f) {
+	public MyFeature(SURFInterestPoint f, int id) {
 		super();
+		this.id = id;
 		point = new MyPoint(f.getX(), f.getY());
 		scale = f.getScale();
 		orientation = f.getOrientation();
 		desc = f.getDescriptor();
 	}
 	
-	public MyFeature(SURFInterestPoint f, float ratio) {
+	public MyFeature(SURFInterestPoint f, float ratio, int id) {
 		super();
+		this.id = id;
 		point = new MyPoint(f.getX() * ratio, f.getY() * ratio);
 		scale = f.getScale();
 		orientation = f.getOrientation();
@@ -77,6 +81,10 @@ public class MyFeature {
 
 	public float getY() {
 		return point.getY();
+	}
+
+	public int getId() {
+		return id;
 	}
 
 }

@@ -46,15 +46,18 @@ import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 
 import name.herve.imagematch.ImageMatchHelper;
+import name.herve.imagematch.PointMatchFinder;
 import name.herve.imagematch.gui.util.FileChooserListener;
 import name.herve.imagematch.gui.util.FileChooserWithTextField;
 import name.herve.imagematch.gui.viewer.ImageViewer;
 import name.herve.imagematch.gui.viewer.ImageViewerListener;
 import name.herve.imagematch.gui.viewer.ImageViewerPanel;
+import name.herve.imagematch.impl.MutualKNNMatchFinder;
 import name.herve.imagematch.impl.MyFeature;
-import name.herve.imagematch.impl.MyMatchFinder;
 import name.herve.imagematch.impl.MyPointMatch;
 import name.herve.imagematch.impl.MyRansac;
+import name.herve.imagematch.impl.ThresholdMatchFinder;
+import name.herve.imagematch.impl.ThresholdSecondBestMatchFinder;
 import name.herve.imagematch.util.CPUMonitor;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.gui.GUIUtil;
@@ -115,26 +118,48 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 			if (v1.getFeatures() != null && v2.getFeatures() != null) {
 				CPUMonitor monitor = new CPUMonitor(CPUMonitor.MONITOR_ALL_THREAD_FINELY);
 				monitor.start();
-				
-				ImageMatchHelper algo = new ImageMatchHelper();
+
 				SignatureDistance<VectorSignature> distance = rbL1.isSelected() ? new L1Distance() : new L2Distance();
-				double distThresh = Double.parseDouble(tfMatchDistThresh.getText());
-				List<MyPointMatch> m = algo.findMatches(v1.getFeatures(), v2.getFeatures(), distance, distThresh);
+
+				PointMatchFinder matchFinder = null;
+
+				if (rbMatchBest2.isSelected()) {
+					double distThresh = Double.parseDouble(tfMatchParam.getText());
+					matchFinder = new ThresholdSecondBestMatchFinder();
+					matchFinder.setParameter(ThresholdSecondBestMatchFinder.DIST_THRESH_P, distThresh);
+				} else if (rbMatchKNN.isSelected()) {
+					double thresh = Double.parseDouble(tfMatchParam.getText());
+					matchFinder = new ThresholdMatchFinder();
+					matchFinder.setParameter(ThresholdMatchFinder.T_P, thresh);
+				} else if (rbMatchKNNMut.isSelected()) {
+					int n = Integer.parseInt(tfMatchParam.getText());
+					matchFinder = new MutualKNNMatchFinder();
+					matchFinder.setParameter(MutualKNNMatchFinder.K_P, n);
+				}
+
+				matchFinder.setP1(v1.getFeatures());
+				matchFinder.setP2(v2.getFeatures());
+				matchFinder.setDistance(distance);
+
+				List<MyPointMatch> m = matchFinder.work();
 				log("Matches computed [" + m.size() + "]");
+
+				ImageMatchHelper helper = new ImageMatchHelper();
+
 				if (cbRansac.isSelected()) {
 					int minMatches = Integer.parseInt(tfRansacMinMatch.getText());
 					int iterations = Integer.parseInt(tfRansacIterations.getText());
 					float epsilon = Float.parseFloat(tfRansacEpsilon.getText());
 					float minInlierRatio = Float.parseFloat(tfRansacMinInlierRatio.getText());
-					
-					m = algo.ransac(m, cbIterativeRansac.isSelected(), epsilon, iterations, minInlierRatio, minMatches);
+
+					m = helper.ransac(m, cbIterativeRansac.isSelected(), epsilon, iterations, minInlierRatio, minMatches);
 					log("RANSAC computed [" + m.size() + "]");
 				}
-				
+
 				monitor.stop();
 				DecimalFormat df = new DecimalFormat("0.000");
 				log("Time : " + df.format(monitor.getElapsedTimeMilli()));
-				
+
 				return m;
 			}
 			return null;
@@ -242,7 +267,11 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	private JTextField tfRansacMinMatch;
 	private JTextField tfRansacEpsilon;
 	private JTextField tfRansacMinInlierRatio;
-	private JTextField tfMatchDistThresh;
+	private JTextField tfMatchParam;
+
+	private JRadioButton rbMatchBest2;
+	private JRadioButton rbMatchKNNMut;
+	private JRadioButton rbMatchKNN;
 
 	public ImageMatchViewer() {
 		super(true);
@@ -266,6 +295,12 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 			} else if (b == rbFill || b == rbBorder) {
 				iv1.setFill(rbFill.isSelected());
 				iv2.setFill(rbFill.isSelected());
+			} else if (b == rbMatchBest2) {
+				tfMatchParam.setText("" + ThresholdSecondBestMatchFinder.DIST_THRESH_V);
+			} else if (b == rbMatchKNNMut) {
+				tfMatchParam.setText("" + MutualKNNMatchFinder.K_V);
+			} else if (b == rbMatchKNN) {
+				tfMatchParam.setText("" + ThresholdMatchFinder.T_V);
 			}
 			return;
 		}
@@ -415,7 +450,19 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		bg4.add(rbL2);
 		rbL2.setSelected(true);
 
-		Dimension maxDim = new Dimension(75, 25);
+		ButtonGroup bg5 = new ButtonGroup();
+		rbMatchBest2 = new JRadioButton("Best");
+		bg5.add(rbMatchBest2);
+		rbMatchKNNMut = new JRadioButton("KNNMut");
+		bg5.add(rbMatchKNNMut);
+		rbMatchKNN = new JRadioButton("KNN");
+		bg5.add(rbMatchKNN);
+		rbMatchBest2.setSelected(true);
+		rbMatchBest2.addActionListener(this);
+		rbMatchKNNMut.addActionListener(this);
+		rbMatchKNN.addActionListener(this);
+
+		Dimension maxDim = new Dimension(50, 25);
 		Dimension minDim = new Dimension(25, 25);
 
 		tfRansacIterations = new JTextField();
@@ -430,11 +477,11 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		tfRansacMinMatch.setMaximumSize(maxDim);
 		tfRansacMinMatch.setMinimumSize(minDim);
 
-		tfMatchDistThresh = new JTextField();
-		tfMatchDistThresh.setText("" + MyMatchFinder.DIST_THRESH);
-		tfMatchDistThresh.setPreferredSize(maxDim);
-		tfMatchDistThresh.setMaximumSize(maxDim);
-		tfMatchDistThresh.setMinimumSize(minDim);
+		tfMatchParam = new JTextField();
+		tfMatchParam.setText("" + ThresholdSecondBestMatchFinder.DIST_THRESH_V);
+		tfMatchParam.setPreferredSize(maxDim);
+		tfMatchParam.setMaximumSize(maxDim);
+		tfMatchParam.setMinimumSize(minDim);
 
 		tfRansacEpsilon = new JTextField();
 		tfRansacEpsilon.setText("" + MyRansac.EPSILON);
@@ -455,8 +502,8 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		btMatch = new JButton("Match");
 		btMatch.addActionListener(this);
 
-		JPanel viewOptions = GUIUtil.createLineBoxPanel(Box.createHorizontalGlue(), cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue());
-		JPanel computeOptions = GUIUtil.createLineBoxPanel(btLoad, Box.createHorizontalGlue(), rbSurf, rbSift, btCompute, Box.createHorizontalGlue(), new JLabel("Match thresh."), tfMatchDistThresh, Box.createHorizontalStrut(10), rbL1, rbL2, Box.createHorizontalStrut(10), new JLabel("Iter."), tfRansacIterations, Box.createHorizontalStrut(10), new JLabel("Min match"), tfRansacMinMatch, Box.createHorizontalStrut(10), new JLabel("eps."), tfRansacEpsilon, Box.createHorizontalStrut(10), new JLabel("Inlier r."), tfRansacMinInlierRatio, Box.createHorizontalStrut(10), cbIterativeRansac, cbRansac, btMatch);
+		JPanel viewOptions = GUIUtil.createLineBoxPanel(btLoad, Box.createHorizontalGlue(), cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue());
+		JPanel computeOptions = GUIUtil.createLineBoxPanel(rbSurf, rbSift, btCompute, Box.createHorizontalGlue(), rbMatchBest2, rbMatchKNN, rbMatchKNNMut, Box.createHorizontalGlue(), new JLabel("Match param"), tfMatchParam, Box.createHorizontalStrut(10), rbL1, rbL2, Box.createHorizontalStrut(10), new JLabel("Iter."), tfRansacIterations, Box.createHorizontalStrut(10), new JLabel("Min match"), tfRansacMinMatch, Box.createHorizontalStrut(10), new JLabel("eps."), tfRansacEpsilon, Box.createHorizontalStrut(10), new JLabel("Inlier r."), tfRansacMinInlierRatio, Box.createHorizontalStrut(10), cbIterativeRansac, cbRansac, btMatch);
 
 		mainPanel.add(GUIUtil.createPageBoxPanel(viewOptions, computeOptions), BorderLayout.PAGE_END);
 

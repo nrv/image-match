@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import name.herve.imagematch.PointMatchFinder;
 import plugins.nherve.toolbox.concurrent.MultipleDataTask;
 import plugins.nherve.toolbox.concurrent.TaskException;
 import plugins.nherve.toolbox.concurrent.TaskManager;
-import plugins.nherve.toolbox.image.feature.SignatureDistance;
 import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.L2Distance;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
@@ -34,7 +34,7 @@ import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class MyMatchFinder {
+public class ThresholdSecondBestMatchFinder extends PointMatchFinder {
 	public class MDT extends MultipleDataTask<MyFeature, Boolean> {
 		public MDT(List<MyFeature> allData, int idx1, int idx2) {
 			super(allData, idx1, idx2);
@@ -45,9 +45,9 @@ public class MyMatchFinder {
 			VectorSignature s1 = new DenseVectorSignature(ip1.getDesc());
 			MyPointMatch firstBest = null;
 			MyPointMatch secondBest = null;
-			for (MyFeature ip2 : p2) {
+			for (MyFeature ip2 : getP2()) {
 				VectorSignature s2 = new DenseVectorSignature(ip2.getDesc());
-				double d = distance.computeDistance(s1, s2);
+				double d = getDistance().computeDistance(s1, s2);
 
 				if (firstBest == null) {
 					firstBest = new MyPointMatch(ip1, ip2, d);
@@ -68,7 +68,7 @@ public class MyMatchFinder {
 				}
 			}
 
-			if ((firstBest != null) && (secondBest != null) && (firstBest.getFeatureDistance() < (distThresh * secondBest.getFeatureDistance()))) {
+			if ((firstBest != null) && (secondBest != null) && (firstBest.getFeatureDistance() < ((Double)(getParameter(DIST_THRESH_P)) * secondBest.getFeatureDistance()))) {
 				firstBest.setGroup(0);
 				matches.add(firstBest);
 			}
@@ -85,40 +85,27 @@ public class MyMatchFinder {
 		}
 	}
 
-	public final static double DIST_THRESH = 0.7;
+	public final static String DIST_THRESH_P = "DIST_THRESH";
+	public final static double DIST_THRESH_V = 0.7;
 
-	private final List<MyFeature> p1;
-	private final List<MyFeature> p2;
 	private List<MyPointMatch> matches;
-	private SignatureDistance<VectorSignature> distance;
-	private double distThresh;
 
-	public MyMatchFinder(List<MyFeature> p1, List<MyFeature> p2) {
+	public ThresholdSecondBestMatchFinder() {
 		super();
 
+		setDistance(new L2Distance());
+		setParameter(DIST_THRESH_P, DIST_THRESH_V);
+	}
+
+	@Override
+	public List<MyPointMatch> work() throws SignatureException {
 		matches = Collections.synchronizedList(new ArrayList<MyPointMatch>());
 
-		setDistance(new L2Distance());
-		setDistThresh(DIST_THRESH);
-
-		this.p1 = p1;
-		this.p2 = p2;
-	}
-
-	public void setDistance(SignatureDistance<VectorSignature> distance) {
-		this.distance = distance;
-	}
-
-	public void setDistThresh(double distThresh) {
-		this.distThresh = distThresh;
-	}
-
-	public List<MyPointMatch> work() throws SignatureException {
 		TaskManager mgr = new TaskManager();
 		mgr.setShowProgress(false);
 
 		try {
-			mgr.submitMultiForAll(p1, MDT.class, this, "finding matches", 1000);
+			mgr.submitMultiForAll(getP1(), MDT.class, this, "finding matches", 1000);
 		} catch (TaskException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {

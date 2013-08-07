@@ -31,8 +31,9 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
+import name.herve.imagematch.impl.MutualKNNMatchFinder;
 import name.herve.imagematch.impl.MyFeature;
-import name.herve.imagematch.impl.MyMatchFinder;
+import name.herve.imagematch.impl.ThresholdSecondBestMatchFinder;
 import name.herve.imagematch.impl.MyPointMatch;
 import name.herve.imagematch.impl.MyRansac;
 
@@ -117,13 +118,20 @@ public class ImageMatchHelper extends Algorithm {
 	}
 
 	public List<MyPointMatch> findMatches(final List<MyFeature> p1, final List<MyFeature> p2) throws SignatureException {
-		return findMatches(p1, p2, new L2Distance(), MyMatchFinder.DIST_THRESH);
+		return findMatches(p1, p2, new L2Distance(), ThresholdSecondBestMatchFinder.DIST_THRESH_V);
 	}
 	
 	public List<MyPointMatch> findMatches(final List<MyFeature> p1, final List<MyFeature> p2, final SignatureDistance<VectorSignature> distance, double distThresh) throws SignatureException {
-		MyMatchFinder algo = new MyMatchFinder(p1, p2);
+//		ThresholdSecondBestMatchFinder algo = new ThresholdSecondBestMatchFinder();
+//		algo.setDistThresh(distThresh);
+		
+		MutualKNNMatchFinder algo = new MutualKNNMatchFinder();
+		algo.setParameter(MutualKNNMatchFinder.K_P, MutualKNNMatchFinder.K_V);
+		
+		algo.setP1(p1);
+		algo.setP2(p2);
 		algo.setDistance(distance);
-		algo.setDistThresh(distThresh);
+		
 		return algo.work();
 	}
 
@@ -184,8 +192,9 @@ public class ImageMatchHelper extends Algorithm {
 
 		Vector<Feature> points = SIFT.getFeatures(img);
 		ArrayList<MyFeature> r = new ArrayList<MyFeature>();
+		int id = 0;
 		for (Feature ip : points) {
-			r.add(new MyFeature(ip));
+			r.add(new MyFeature(ip, id++));
 		}
 
 		return r;
@@ -209,12 +218,14 @@ public class ImageMatchHelper extends Algorithm {
 		ArrayList<MyFeature> r = new ArrayList<MyFeature>();
 		if (doResize) {
 			ratio = 1f / ratio;
+			int id = 0;
 			for (SURFInterestPoint ip : surf.getFreeOrientedInterestPoints()) {
-				r.add(new MyFeature(ip, ratio));
+				r.add(new MyFeature(ip, ratio, id++));
 			}
 		} else {
+			int id = 0;
 			for (SURFInterestPoint ip : surf.getFreeOrientedInterestPoints()) {
-				r.add(new MyFeature(ip));
+				r.add(new MyFeature(ip, id++));
 			}
 		}
 

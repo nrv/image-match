@@ -23,7 +23,6 @@ package name.herve.imagematch.impl;
  */
 public class MyPoint implements Cloneable {
 	private float x;
-
 	private float y;
 
 	public MyPoint() {
