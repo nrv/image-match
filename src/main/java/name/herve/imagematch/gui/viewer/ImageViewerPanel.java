@@ -35,8 +35,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import name.herve.imagematch.MyFeature;
-import name.herve.imagematch.MyPointMatch;
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyPointMatch;
 import plugins.nherve.toolbox.gui.GUIUtil;
 import plugins.nherve.toolbox.image.DifferentColorsMap;
 

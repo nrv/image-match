@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with image-match. If not, see <http://www.gnu.org/licenses/>.
  */
-package name.herve.imagematch;
+package name.herve.imagematch.impl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,33 +30,42 @@ import plugins.nherve.toolbox.Algorithm;
  * @author Nicolas HERVE - n.herve@laposte.net
  */
 public class MyRansac extends Algorithm {
-	public final static int MIN_MATCHES = 2;
-
+	public final static int MIN_MATCHES = 3;
 	public final static int ITERATIONS = 1000;
-	private MyModel model;
+	public final static float EPSILON = 400f;
+	public final static float MIN_INLIER_RATIO = 0.15f;
 
+	private MyModel model;
 	private List<MyPointMatch> inliers;
+	private int minMatches;
+	private int iterations;
+	private float epsilon;
+	private float minInlierRatio;
 
 	public MyRansac() {
 		super(true);
+		setMinMatches(MIN_MATCHES);
+		setIterations(ITERATIONS);
+		setEpsilon(EPSILON);
+		setMinInlierRatio(MIN_INLIER_RATIO);
 	}
 
-	public void estimateModel(List<MyPointMatch> matches, float epsilon, float minInlierRatio) {
+	public void estimateModel(List<MyPointMatch> matches) {
 		inliers = new ArrayList<MyPointMatch>();
-		
-		if (matches.size() < MIN_MATCHES) {
+
+		if (matches.size() < minMatches) {
 			return;
 		}
-		
+
 		model = new MyModel();
 
 		Random rd = new Random(System.currentTimeMillis());
 
-		for (int i = 0; i < ITERATIONS; i++) {
+		for (int i = 0; i < iterations; i++) {
 			Set<MyPointMatch> randomMatches = new HashSet<MyPointMatch>();
 			do {
 				randomMatches.add(matches.get(rd.nextInt(matches.size())));
-			} while (randomMatches.size() < MIN_MATCHES);
+			} while (randomMatches.size() < minMatches);
 
 			MyModel tempModel = new MyModel();
 			ArrayList<MyPointMatch> tempInliers = new ArrayList<MyPointMatch>();
@@ -64,13 +73,13 @@ public class MyRansac extends Algorithm {
 
 			int numInliers = 0;
 			boolean isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
-			while (isGood && numInliers < tempInliers.size()) {
+			while (isGood && (numInliers < tempInliers.size())) {
 				numInliers = tempInliers.size();
 				tempModel.minimize(tempInliers);
 				isGood = tempModel.testAndKeepGoodMatches(matches, tempInliers, epsilon, minInlierRatio);
 			}
 
-			if (isGood && tempModel.betterThan(model) && tempInliers.size() >= 3 /*3 * MIN_MATCHES*/) {
+			if (isGood && tempModel.betterThan(model) && (tempInliers.size() >= minMatches + 1)) {
 				model = tempModel.clone();
 				inliers.clear();
 				inliers.addAll(tempInliers);
@@ -88,5 +97,21 @@ public class MyRansac extends Algorithm {
 
 	public MyModel getModel() {
 		return model;
+	}
+
+	public void setEpsilon(float epsilon) {
+		this.epsilon = epsilon;
+	}
+
+	public void setIterations(int iterations) {
+		this.iterations = iterations;
+	}
+
+	public void setMinInlierRatio(float minInlierRatio) {
+		this.minInlierRatio = minInlierRatio;
+	}
+
+	public void setMinMatches(int minMatches) {
+		this.minMatches = minMatches;
 	}
 }

@@ -31,11 +31,15 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyMatchFinder;
+import name.herve.imagematch.impl.MyPointMatch;
+import name.herve.imagematch.impl.MyRansac;
+
 import mpi.cbg.fly.Feature;
 import mpi.cbg.fly.SIFT;
-import plugins.nherve.toolbox.AbleToLogMessages;
+import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.image.feature.SignatureDistance;
-import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.L2Distance;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
@@ -47,10 +51,7 @@ import com.stromberglabs.jopensurf.Surf;
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class ImageMatch {
-
-	private final static double RATIO = 0.5;
-
+public class ImageMatchHelper extends Algorithm {
 	private final static int SURF_OCTAVES = 5;
 	private final static float SURF_THRESHOLD = 0.00001F;
 	private final static float SURF_BALANCE_VALUE = 0.9F;
@@ -62,9 +63,11 @@ public class ImageMatch {
 	private static int SIFT_MIN_SIZE = 64;
 	private static int SIFT_MAX_SIZE = 1024;
 
-	private final static double DIST_THRESH = 0.7;
+	public ImageMatchHelper() {
+		super(true);
+	}
 
-	public static void drawMatches(BufferedImage img1, BufferedImage img2, List<MyPointMatch> matches, File f) throws IOException {
+	public void drawMatches(BufferedImage img1, BufferedImage img2, List<MyPointMatch> matches, File f) throws IOException {
 		int space = 25;
 		int w = img1.getWidth() + space + img2.getWidth();
 		int h = Math.max(img1.getHeight(), img2.getHeight());
@@ -99,7 +102,7 @@ public class ImageMatch {
 		dump(r, f);
 	}
 
-	public static void drawPoints(BufferedImage img1, List<MyFeature> points) {
+	public void drawPoints(BufferedImage img1, List<MyFeature> points) {
 		Graphics2D g2 = (Graphics2D) img1.getGraphics();
 		g2.setColor(Color.RED);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -109,57 +112,69 @@ public class ImageMatch {
 		g2.dispose();
 	}
 
-	public static void dump(BufferedImage img, File f) throws IOException {
+	public void dump(BufferedImage img, File f) throws IOException {
 		ImageIO.write(img, "JPEG", f);
 	}
 
-	public static List<MyPointMatch> findMatches(List<MyFeature> p1, List<MyFeature> p2) throws SignatureException {
-		ArrayList<MyPointMatch> matches = new ArrayList<MyPointMatch>();
-		SignatureDistance<VectorSignature> sd = new L2Distance();
-
-		for (MyFeature ip1 : p1) {
-			VectorSignature s1 = new DenseVectorSignature(ip1.getDesc());
-			MyPointMatch firstBest = null;
-			MyPointMatch secondBest = null;
-			for (MyFeature ip2 : p2) {
-				VectorSignature s2 = new DenseVectorSignature(ip2.getDesc());
-				double d = sd.computeDistance(s1, s2);
-
-				if (firstBest == null) {
-					firstBest = new MyPointMatch(ip1, ip2, d);
-				} else if (secondBest == null) {
-					if (d < firstBest.getFeatureDistance()) {
-						secondBest = firstBest;
-						firstBest = new MyPointMatch(ip1, ip2, d);
-					} else {
-						secondBest = new MyPointMatch(ip1, ip2, d);
-					}
-				} else {
-					if (d < firstBest.getFeatureDistance()) {
-						secondBest = firstBest;
-						firstBest = new MyPointMatch(ip1, ip2, d);
-					} else if (d < secondBest.getFeatureDistance()) {
-						secondBest = new MyPointMatch(ip1, ip2, d);
-					}
-				}
-			}
-
-			if (firstBest != null && secondBest != null && firstBest.getFeatureDistance() < DIST_THRESH * secondBest.getFeatureDistance()) {
-				firstBest.setGroup(0);
-				matches.add(firstBest);
-			}
-		}
-
-		return matches;
+	public List<MyPointMatch> findMatches(final List<MyFeature> p1, final List<MyFeature> p2) throws SignatureException {
+		return findMatches(p1, p2, new L2Distance(), MyMatchFinder.DIST_THRESH);
+	}
+	
+	public List<MyPointMatch> findMatches(final List<MyFeature> p1, final List<MyFeature> p2, final SignatureDistance<VectorSignature> distance, double distThresh) throws SignatureException {
+		MyMatchFinder algo = new MyMatchFinder(p1, p2);
+		algo.setDistance(distance);
+		algo.setDistThresh(distThresh);
+		return algo.work();
 	}
 
-	public static BufferedImage load(File f) throws IOException {
+	
+	public List<MyPointMatch> ransac(List<MyPointMatch> matches) {
+		return ransac(matches, false);		
+	}
+	
+	public List<MyPointMatch> ransac(List<MyPointMatch> matches, boolean iterative) {
+		return ransac(matches, iterative, MyRansac.EPSILON, MyRansac.ITERATIONS, MyRansac.MIN_INLIER_RATIO, MyRansac.MIN_MATCHES);
+	}
+	
+	public List<MyPointMatch> ransac(List<MyPointMatch> matches, boolean iterative, float epsilon, int iterations, float minInlierRatio, int minMatches) {
+		List<MyPointMatch> result = new ArrayList<MyPointMatch>();
+		
+		MyRansac algo = new MyRansac();
+		algo.setEpsilon(epsilon);
+		algo.setIterations(iterations);
+		algo.setMinInlierRatio(minInlierRatio);
+		algo.setMinMatches(minMatches);
+
+		List<MyPointMatch> iteration = null;
+		int group = 0;
+		
+		do {
+			algo.estimateModel(matches);
+			iteration = algo.getInliers();
+
+			log("RANSAC [" + group + "] : " + iteration.size());
+
+			for (MyPointMatch pm : iteration) {
+				pm.setGroup(group);
+				result.add(pm);
+				matches.remove(pm);
+			}
+
+			group++;
+
+		} while (iterative && iteration.size() > 0);
+
+		return result;
+	}
+
+	public BufferedImage load(File f) throws IOException {
 		BufferedImage img = ImageIO.read(f);
 		return img;
-		//return ImageTools.resize(img, (int) (img.getWidth() * RATIO), (int) (img.getHeight() * RATIO), true);
 	}
 
-	public static List<MyFeature> processSIFT(BufferedImage img) throws IOException {
+	public List<MyFeature> processSIFT(BufferedImage img) throws IOException {
+		log("SIFT : " + img.getWidth() + " x " + img.getHeight());
+
 		SIFT.set_fdsize(SIFT_FDSIZE);
 		SIFT.fdbins(SIFT_FDBINS);
 		SIFT.set_initial_sigma(SIFT_INITIAL_SIGMA);
@@ -176,44 +191,33 @@ public class ImageMatch {
 		return r;
 	}
 
-	public static List<MyFeature> processSURF(BufferedImage img) throws IOException {
+	public List<MyFeature> processSURF(BufferedImage img) throws IOException {
+		int l = Math.max(img.getWidth(), img.getHeight());
+		boolean doResize = (l > SIFT_MAX_SIZE * 1.1);
+
+		float ratio = 1;
+
+		if (doResize) {
+			ratio = (float) SIFT_MAX_SIZE / (float) l;
+			img = ImageTools.resize(img, (int) (img.getWidth() * ratio), (int) (img.getHeight() * ratio), true);
+		}
+
+		log("SURF : " + img.getWidth() + " x " + img.getHeight());
+
 		Surf surf = new Surf(img, SURF_BALANCE_VALUE, SURF_THRESHOLD, SURF_OCTAVES);
 
 		ArrayList<MyFeature> r = new ArrayList<MyFeature>();
-		for (SURFInterestPoint ip : surf.getFreeOrientedInterestPoints()) {
-			r.add(new MyFeature(ip));
+		if (doResize) {
+			ratio = 1f / ratio;
+			for (SURFInterestPoint ip : surf.getFreeOrientedInterestPoints()) {
+				r.add(new MyFeature(ip, ratio));
+			}
+		} else {
+			for (SURFInterestPoint ip : surf.getFreeOrientedInterestPoints()) {
+				r.add(new MyFeature(ip));
+			}
 		}
 
 		return r;
 	}
-
-	public static List<MyPointMatch> ransac(List<MyPointMatch> matches) {
-		MyRansac algo = new MyRansac();
-		algo.estimateModel(matches, 100f, 0.15f);
-		return algo.getInliers();
-	}
-	
-	public static List<MyPointMatch> iterativeRansac(List<MyPointMatch> matches, AbleToLogMessages logger) {
-		List<MyPointMatch> result = new ArrayList<MyPointMatch>();
-		List<MyPointMatch> iteration = null;
-		int group = 0;
-		
-		do {
-			iteration = ransac(matches);
-		
-			logger.log("RANSAC ["+group+"] : " + iteration.size());
-			
-			for (MyPointMatch pm : iteration) {
-				pm.setGroup(group);
-				result.add(pm);
-				matches.remove(pm);
-			}
-			
-			group++;
-			
-		} while(iteration.size() > 0);
-		
-		return result;
-	}
-
 }

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with image-match. If not, see <http://www.gnu.org/licenses/>.
  */
-package name.herve.imagematch;
+package name.herve.imagematch.impl;
 
 import mpi.cbg.fly.Feature;
 
@@ -42,6 +42,14 @@ public class MyFeature {
 	public MyFeature(SURFInterestPoint f) {
 		super();
 		point = new MyPoint(f.getX(), f.getY());
+		scale = f.getScale();
+		orientation = f.getOrientation();
+		desc = f.getDescriptor();
+	}
+	
+	public MyFeature(SURFInterestPoint f, float ratio) {
+		super();
+		point = new MyPoint(f.getX() * ratio, f.getY() * ratio);
 		scale = f.getScale();
 		orientation = f.getOrientation();
 		desc = f.getDescriptor();

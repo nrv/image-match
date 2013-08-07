@@ -20,6 +20,7 @@ package name.herve.imagematch.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -27,6 +28,7 @@ import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,20 +39,30 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 
-import name.herve.imagematch.ImageMatch;
-import name.herve.imagematch.MyFeature;
-import name.herve.imagematch.MyPointMatch;
+import name.herve.imagematch.ImageMatchHelper;
 import name.herve.imagematch.gui.util.FileChooserListener;
 import name.herve.imagematch.gui.util.FileChooserWithTextField;
 import name.herve.imagematch.gui.viewer.ImageViewer;
 import name.herve.imagematch.gui.viewer.ImageViewerListener;
 import name.herve.imagematch.gui.viewer.ImageViewerPanel;
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyMatchFinder;
+import name.herve.imagematch.impl.MyPointMatch;
+import name.herve.imagematch.impl.MyRansac;
+import name.herve.imagematch.util.CPUMonitor;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.gui.GUIUtil;
 import plugins.nherve.toolbox.image.DifferentColorsMap;
+import plugins.nherve.toolbox.image.feature.SignatureDistance;
+import plugins.nherve.toolbox.image.feature.signature.L1Distance;
+import plugins.nherve.toolbox.image.feature.signature.L2Distance;
+import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
@@ -69,7 +81,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		@Override
 		protected BufferedImage doInBackground() throws Exception {
 			try {
-				return ImageMatch.load(f);
+				return algo.load(f);
 			} catch (IOException e) {
 				System.err.println(f.getAbsolutePath() + " : " + e.getMessage());
 				return null;
@@ -101,16 +113,28 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		@Override
 		protected List<MyPointMatch> doInBackground() throws Exception {
 			if (v1.getFeatures() != null && v2.getFeatures() != null) {
-				List<MyPointMatch> m = ImageMatch.findMatches(v1.getFeatures(), v2.getFeatures());
+				CPUMonitor monitor = new CPUMonitor(CPUMonitor.MONITOR_ALL_THREAD_FINELY);
+				monitor.start();
+				
+				ImageMatchHelper algo = new ImageMatchHelper();
+				SignatureDistance<VectorSignature> distance = rbL1.isSelected() ? new L1Distance() : new L2Distance();
+				double distThresh = Double.parseDouble(tfMatchDistThresh.getText());
+				List<MyPointMatch> m = algo.findMatches(v1.getFeatures(), v2.getFeatures(), distance, distThresh);
 				log("Matches computed [" + m.size() + "]");
 				if (cbRansac.isSelected()) {
-					if (cbIterativeRansac.isSelected()) {
-						m = ImageMatch.iterativeRansac(m, ImageMatchViewer.this);
-					} else {
-						m = ImageMatch.ransac(m);
-					}
+					int minMatches = Integer.parseInt(tfRansacMinMatch.getText());
+					int iterations = Integer.parseInt(tfRansacIterations.getText());
+					float epsilon = Float.parseFloat(tfRansacEpsilon.getText());
+					float minInlierRatio = Float.parseFloat(tfRansacMinInlierRatio.getText());
+					
+					m = algo.ransac(m, cbIterativeRansac.isSelected(), epsilon, iterations, minInlierRatio, minMatches);
 					log("RANSAC computed [" + m.size() + "]");
 				}
+				
+				monitor.stop();
+				DecimalFormat df = new DecimalFormat("0.000");
+				log("Time : " + df.format(monitor.getElapsedTimeMilli()));
+				
 				return m;
 			}
 			return null;
@@ -151,7 +175,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		@Override
 		protected List<MyFeature> doInBackground() throws Exception {
 			try {
-				List<MyFeature> f = doSurf ? ImageMatch.processSURF(v.getImage()) : ImageMatch.processSIFT(v.getImage());
+				List<MyFeature> f = doSurf ? algo.processSURF(v.getImage()) : algo.processSIFT(v.getImage());
 				log("Features extracted for " + v.getLabel());
 				return f;
 			} catch (IOException e) {
@@ -176,6 +200,8 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		JFrame.setDefaultLookAndFeelDecorated(true);
+
 		ImageMatchViewer application = new ImageMatchViewer();
 		String defaultLocation1 = null;
 		String defaultLocation2 = null;
@@ -188,6 +214,8 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		}
 		application.startInterface(defaultLocation1, defaultLocation2);
 	}
+
+	private ImageMatchHelper algo;
 
 	private FileChooserWithTextField fc1;
 	private FileChooserWithTextField fc2;
@@ -208,8 +236,18 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	private JRadioButton rbFill;
 	private JRadioButton rbBorder;
 
+	private JRadioButton rbL1;
+	private JRadioButton rbL2;
+	private JTextField tfRansacIterations;
+	private JTextField tfRansacMinMatch;
+	private JTextField tfRansacEpsilon;
+	private JTextField tfRansacMinInlierRatio;
+	private JTextField tfMatchDistThresh;
+
 	public ImageMatchViewer() {
 		super(true);
+
+		algo = new ImageMatchHelper();
 	}
 
 	@Override
@@ -314,7 +352,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 	public void startInterface(String defaultLocation1, String defaultLocation2) {
 		// JFrame.setDefaultLookAndFeelDecorated(true);
 		JFrame frame = new JFrame("Image match viewer");
-		frame.setSize(1200, 600);
+		frame.setSize(1400, 700);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Container mainPanel = frame.getContentPane();
 		mainPanel.setLayout(new BorderLayout());
@@ -335,7 +373,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		cbSynchroOpacity.setSelected(false);
 		cbSynchroOpacity.addItemListener(this);
 
-		cbOnlyMatches = new JCheckBox("Matches");
+		cbOnlyMatches = new JCheckBox("Only matches");
 		cbOnlyMatches.setSelected(false);
 		cbOnlyMatches.addItemListener(this);
 
@@ -370,13 +408,57 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		rbBorder.addActionListener(this);
 		rbFill.addActionListener(this);
 
+		ButtonGroup bg4 = new ButtonGroup();
+		rbL1 = new JRadioButton("L1");
+		bg4.add(rbL1);
+		rbL2 = new JRadioButton("L2");
+		bg4.add(rbL2);
+		rbL2.setSelected(true);
+
+		Dimension maxDim = new Dimension(75, 25);
+		Dimension minDim = new Dimension(25, 25);
+
+		tfRansacIterations = new JTextField();
+		tfRansacIterations.setText("" + MyRansac.ITERATIONS);
+		tfRansacIterations.setPreferredSize(maxDim);
+		tfRansacIterations.setMaximumSize(maxDim);
+		tfRansacIterations.setMinimumSize(minDim);
+
+		tfRansacMinMatch = new JTextField();
+		tfRansacMinMatch.setText("" + MyRansac.MIN_MATCHES);
+		tfRansacMinMatch.setPreferredSize(maxDim);
+		tfRansacMinMatch.setMaximumSize(maxDim);
+		tfRansacMinMatch.setMinimumSize(minDim);
+
+		tfMatchDistThresh = new JTextField();
+		tfMatchDistThresh.setText("" + MyMatchFinder.DIST_THRESH);
+		tfMatchDistThresh.setPreferredSize(maxDim);
+		tfMatchDistThresh.setMaximumSize(maxDim);
+		tfMatchDistThresh.setMinimumSize(minDim);
+
+		tfRansacEpsilon = new JTextField();
+		tfRansacEpsilon.setText("" + MyRansac.EPSILON);
+		tfRansacEpsilon.setPreferredSize(maxDim);
+		tfRansacEpsilon.setMaximumSize(maxDim);
+		tfRansacEpsilon.setMinimumSize(minDim);
+
+		tfRansacMinInlierRatio = new JTextField();
+		tfRansacMinInlierRatio.setText("" + MyRansac.MIN_INLIER_RATIO);
+		tfRansacMinInlierRatio.setPreferredSize(maxDim);
+		tfRansacMinInlierRatio.setMaximumSize(maxDim);
+		tfRansacMinInlierRatio.setMinimumSize(minDim);
+
 		btCompute = new JButton("Compute");
 		btCompute.addActionListener(this);
 		btLoad = new JButton("Load");
 		btLoad.addActionListener(this);
 		btMatch = new JButton("Match");
 		btMatch.addActionListener(this);
-		mainPanel.add(GUIUtil.createLineBoxPanel(cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalStrut(10), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue(), rbSurf, rbSift, Box.createHorizontalGlue(), cbIterativeRansac, cbRansac, btMatch, Box.createHorizontalStrut(10), btCompute, Box.createHorizontalStrut(10), btLoad), BorderLayout.PAGE_END);
+
+		JPanel viewOptions = GUIUtil.createLineBoxPanel(Box.createHorizontalGlue(), cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue());
+		JPanel computeOptions = GUIUtil.createLineBoxPanel(btLoad, Box.createHorizontalGlue(), rbSurf, rbSift, btCompute, Box.createHorizontalGlue(), new JLabel("Match thresh."), tfMatchDistThresh, Box.createHorizontalStrut(10), new JLabel("Iter."), tfRansacIterations, Box.createHorizontalStrut(10), new JLabel("Min match"), tfRansacMinMatch, Box.createHorizontalStrut(10), new JLabel("eps."), tfRansacEpsilon, Box.createHorizontalStrut(10), new JLabel("Inlier r."), tfRansacMinInlierRatio, Box.createHorizontalStrut(10), cbIterativeRansac, cbRansac, btMatch);
+
+		mainPanel.add(GUIUtil.createPageBoxPanel(viewOptions, computeOptions), BorderLayout.PAGE_END);
 
 		frame.setLocation(100, 100);
 		frame.setVisible(true);

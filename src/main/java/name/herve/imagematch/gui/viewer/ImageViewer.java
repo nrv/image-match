@@ -38,8 +38,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
-import name.herve.imagematch.MyFeature;
-import name.herve.imagematch.MyPointMatch;
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyPointMatch;
 import plugins.nherve.toolbox.image.DifferentColorsMap;
 import plugins.nherve.toolbox.image.toolboxes.ImageTools;
 

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with image-match. If not, see <http://www.gnu.org/licenses/>.
  */
-package name.herve.imagematch;
+package name.herve.imagematch.impl;
 
 import java.awt.geom.AffineTransform;
 import java.util.Collection;

@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyPointMatch;
+
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 
 public class MatchLogos {
@@ -57,18 +60,20 @@ public class MatchLogos {
 		Map<File, List<MyFeature>> features = new HashMap<File, List<MyFeature>>();
 		Map<File, BufferedImage> images = new HashMap<File, BufferedImage>();
 
+		ImageMatchHelper algo = new ImageMatchHelper();
+		
 		for (File f : files) {
-			BufferedImage img = ImageMatch.load(f);
+			BufferedImage img = algo.load(f);
 			images.put(f, img);
-			List<MyFeature> fs = ImageMatch.processSURF(img);
+			List<MyFeature> fs = algo.processSURF(img);
 			System.out.println("SURF - [" + img.getWidth() + " x " + img.getHeight() + "] [" + fs.size() + "]  -- " + f.getName());
 			features.put(f, fs);
 		}
 
 		for (int f1 = 0; f1 < files.size() - 1; f1++) {
 			for (int f2 = f1 + 1; f2 < files.size(); f2++) {
-				List<MyPointMatch> m = ImageMatch.findMatches(features.get(files.get(f1)), features.get(files.get(f2)));
-				m = ImageMatch.ransac(m);
+				List<MyPointMatch> m = algo.findMatches(features.get(files.get(f1)), features.get(files.get(f2)));
+				m = algo.ransac(m);
 				if (m != null && m.size() > 0) {
 					System.out.println("[" + f1 + " / " + f2 + "] [" + m.size() + "] " + files.get(f1).getName() + "  <->  " + files.get(f2).getName());
 					BufferedImage img1 = deepCopy(images.get(files.get(f1)));
@@ -77,7 +82,7 @@ public class MatchLogos {
 					// ImageMatch.drawPoints(img1, features.get(files.get(f1)));
 					// ImageMatch.drawPoints(img2, features.get(files.get(f2)));
 
-					ImageMatch.drawMatches(img1, img2, m, new File(out, f1 + "-" + f2 + ".jpg"));
+					algo.drawMatches(img1, img2, m, new File(out, f1 + "-" + f2 + ".jpg"));
 				}
 			}
 		}
