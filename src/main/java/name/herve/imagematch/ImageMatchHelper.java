@@ -52,7 +52,7 @@ import com.stromberglabs.jopensurf.Surf;
  * @author Nicolas HERVE - n.herve@laposte.net
  */
 public class ImageMatchHelper extends Algorithm {
-	private final static int SURF_OCTAVES = 5;
+	private final static int SURF_OCTAVES = 5; // max 5
 	private final static float SURF_THRESHOLD = 0.00001F;
 	private final static float SURF_BALANCE_VALUE = 0.9F;
 
@@ -60,8 +60,8 @@ public class ImageMatchHelper extends Algorithm {
 	private static float SIFT_INITIAL_SIGMA = 1.6f;
 	private static int SIFT_FDSIZE = 4;
 	private static int SIFT_FDBINS = 8;
-	private static int SIFT_MIN_SIZE = 64;
-	private static int SIFT_MAX_SIZE = 1024;
+	private static int SIFT_MIN_SIZE = 32;
+	private static int SIFT_MAX_SIZE = 2048;
 
 	public ImageMatchHelper() {
 		super(true);

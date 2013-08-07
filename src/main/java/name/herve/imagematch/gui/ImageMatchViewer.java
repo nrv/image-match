@@ -456,7 +456,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		btMatch.addActionListener(this);
 
 		JPanel viewOptions = GUIUtil.createLineBoxPanel(Box.createHorizontalGlue(), cbSynchroOpacity, Box.createHorizontalGlue(), cbOnlyMatches, Box.createHorizontalGlue(), rbSquare, rbCircle, Box.createHorizontalGlue(), rbFill, rbBorder, Box.createHorizontalGlue());
-		JPanel computeOptions = GUIUtil.createLineBoxPanel(btLoad, Box.createHorizontalGlue(), rbSurf, rbSift, btCompute, Box.createHorizontalGlue(), new JLabel("Match thresh."), tfMatchDistThresh, Box.createHorizontalStrut(10), new JLabel("Iter."), tfRansacIterations, Box.createHorizontalStrut(10), new JLabel("Min match"), tfRansacMinMatch, Box.createHorizontalStrut(10), new JLabel("eps."), tfRansacEpsilon, Box.createHorizontalStrut(10), new JLabel("Inlier r."), tfRansacMinInlierRatio, Box.createHorizontalStrut(10), cbIterativeRansac, cbRansac, btMatch);
+		JPanel computeOptions = GUIUtil.createLineBoxPanel(btLoad, Box.createHorizontalGlue(), rbSurf, rbSift, btCompute, Box.createHorizontalGlue(), new JLabel("Match thresh."), tfMatchDistThresh, Box.createHorizontalStrut(10), rbL1, rbL2, Box.createHorizontalStrut(10), new JLabel("Iter."), tfRansacIterations, Box.createHorizontalStrut(10), new JLabel("Min match"), tfRansacMinMatch, Box.createHorizontalStrut(10), new JLabel("eps."), tfRansacEpsilon, Box.createHorizontalStrut(10), new JLabel("Inlier r."), tfRansacMinInlierRatio, Box.createHorizontalStrut(10), cbIterativeRansac, cbRansac, btMatch);
 
 		mainPanel.add(GUIUtil.createPageBoxPanel(viewOptions, computeOptions), BorderLayout.PAGE_END);
 

@@ -65,7 +65,7 @@ public class MyRansac extends Algorithm {
 			Set<MyPointMatch> randomMatches = new HashSet<MyPointMatch>();
 			do {
 				randomMatches.add(matches.get(rd.nextInt(matches.size())));
-			} while (randomMatches.size() < minMatches);
+			} while (randomMatches.size() < 2);
 
 			MyModel tempModel = new MyModel();
 			ArrayList<MyPointMatch> tempInliers = new ArrayList<MyPointMatch>();
