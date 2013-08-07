@@ -32,7 +32,7 @@ import plugins.nherve.toolbox.Algorithm;
 public class MyRansac extends Algorithm {
 	public final static int MIN_MATCHES = 3;
 	public final static int ITERATIONS = 1000;
-	public final static float EPSILON = 400f;
+	public final static float EPSILON = 200f;
 	public final static float MIN_INLIER_RATIO = 0.15f;
 
 	private MyModel model;
