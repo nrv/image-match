@@ -56,11 +56,9 @@ public class MutualKNNMatchFinder extends PointMatchFinder {
 		}
 
 		@Override
-		public void call(MyFeature ip1, int idx) throws Exception {
-			VectorSignature s1 = new DenseVectorSignature(ip1.getDesc());
+		public void call(MyFeature s1, int idx) throws Exception {
 			for (int i = 0; i < getP2().size(); i++) {
-				VectorSignature s2 = new DenseVectorSignature(getP2().get(i).getDesc());
-				dm[idx][i] = getDistance().computeDistance(s1, s2);
+				dm[idx][i] = getDistance().computeDistance(s1, getP2().get(i));
 			}
 		}
 

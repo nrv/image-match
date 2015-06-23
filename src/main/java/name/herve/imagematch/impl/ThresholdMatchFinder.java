@@ -50,10 +50,8 @@ public class ThresholdMatchFinder extends PointMatchFinder {
 		@Override
 		public void call(MyFeature ip1, int idx) throws Exception {
 			double t = (Double) getParameter(T_P);
-			VectorSignature s1 = new DenseVectorSignature(ip1.getDesc());
 			for (int i = 0; i < getP2().size(); i++) {
-				VectorSignature s2 = new DenseVectorSignature(getP2().get(i).getDesc());
-				double d = getDistance().computeDistance(s1, s2);
+				double d = getDistance().computeDistance(ip1, getP2().get(i));
 				if (d <= t) {
 					matches.add(new MyPointMatch(ip1, getP2().get(i), d));
 				}

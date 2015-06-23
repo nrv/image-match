@@ -18,14 +18,51 @@
  */
 package name.herve.imagematch.impl;
 
+import java.util.Iterator;
+
 import mpi.cbg.fly.Feature;
+import plugins.nherve.toolbox.image.feature.signature.SignatureException;
+import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 import com.stromberglabs.jopensurf.SURFInterestPoint;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class MyFeature {
+public class MyFeature extends VectorSignature {
+	private class MyFeatureIterator implements Iterator<Integer> {
+		private int d;
+
+		public MyFeatureIterator() {
+			super();
+			d = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			while (d < desc.length) {
+				if (desc[d] != 0) {
+					return true;
+				}
+				d++;
+			}
+
+			return false;
+		}
+
+		@Override
+		public Integer next() {
+			int r = d;
+			d++;
+			return r;
+		}
+
+		@Override
+		public void remove() {
+			// not used
+		}
+	}
+
 	private int id;
 	private float[] desc;
 	private float orientation;
@@ -41,15 +78,6 @@ public class MyFeature {
 		desc = f.descriptor;
 	}
 
-	public MyFeature(SURFInterestPoint f, int id) {
-		super();
-		this.id = id;
-		point = new MyPoint(f.getX(), f.getY());
-		scale = f.getScale();
-		orientation = f.getOrientation();
-		desc = f.getDescriptor();
-	}
-	
 	public MyFeature(SURFInterestPoint f, float ratio, int id) {
 		super();
 		this.id = id;
@@ -59,8 +87,47 @@ public class MyFeature {
 		desc = f.getDescriptor();
 	}
 
+	public MyFeature(SURFInterestPoint f, int id) {
+		super();
+		this.id = id;
+		point = new MyPoint(f.getX(), f.getY());
+		scale = f.getScale();
+		orientation = f.getOrientation();
+		desc = f.getDescriptor();
+	}
+
+	@Override
+	public VectorSignature clone() throws CloneNotSupportedException {
+		throw new RuntimeException("Not implemented yet !");
+	}
+
+	@Override
+	public void concat(VectorSignature other) throws SignatureException {
+		throw new RuntimeException("Not implemented yet !");
+	}
+
+	@Override
+	public double get(int idx) throws SignatureException {
+		return desc[idx];
+	}
+
 	public float[] getDesc() {
 		return desc;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	@Override
+	public int getNonZeroBins() throws SignatureException {
+		int res = 0;
+		for (int d = 0; d < getSize(); d++) {
+			if (get(d) != 0) {
+				res++;
+			}
+		}
+		return res;
 	}
 
 	public float getOrientation() {
@@ -75,6 +142,11 @@ public class MyFeature {
 		return scale;
 	}
 
+	@Override
+	public int getSize() {
+		return desc == null ? 0 : desc.length;
+	}
+
 	public float getX() {
 		return point.getX();
 	}
@@ -83,8 +155,19 @@ public class MyFeature {
 		return point.getY();
 	}
 
-	public int getId() {
-		return id;
+	@Override
+	public Iterator<Integer> iterator() {
+		return new MyFeatureIterator();
+	}
+
+	@Override
+	public void set(int idx, double val) throws SignatureException {
+		desc[idx] = (float) val;
+	}
+
+	@Override
+	public void setSize(int s) {
+		// ignored
 	}
 
 }

@@ -42,12 +42,10 @@ public class ThresholdSecondBestMatchFinder extends PointMatchFinder {
 
 		@Override
 		public void call(MyFeature ip1, int idx) throws Exception {
-			VectorSignature s1 = new DenseVectorSignature(ip1.getDesc());
 			MyPointMatch firstBest = null;
 			MyPointMatch secondBest = null;
 			for (MyFeature ip2 : getP2()) {
-				VectorSignature s2 = new DenseVectorSignature(ip2.getDesc());
-				double d = getDistance().computeDistance(s1, s2);
+				double d = getDistance().computeDistance(ip1, ip2);
 
 				if (firstBest == null) {
 					firstBest = new MyPointMatch(ip1, ip2, d);

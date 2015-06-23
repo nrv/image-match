@@ -31,14 +31,13 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
-import name.herve.imagematch.impl.MutualKNNMatchFinder;
-import name.herve.imagematch.impl.MyFeature;
-import name.herve.imagematch.impl.ThresholdSecondBestMatchFinder;
-import name.herve.imagematch.impl.MyPointMatch;
-import name.herve.imagematch.impl.MyRansac;
-
 import mpi.cbg.fly.Feature;
 import mpi.cbg.fly.SIFT;
+import name.herve.imagematch.impl.MutualKNNMatchFinder;
+import name.herve.imagematch.impl.MyFeature;
+import name.herve.imagematch.impl.MyPointMatch;
+import name.herve.imagematch.impl.MyRansac;
+import name.herve.imagematch.impl.ThresholdSecondBestMatchFinder;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.image.feature.SignatureDistance;
 import plugins.nherve.toolbox.image.feature.signature.L2Distance;

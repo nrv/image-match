@@ -18,10 +18,16 @@
  */
 package name.herve.imagematch.impl;
 
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import plugins.nherve.toolbox.image.feature.region.Pixel;
+
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class MyPoint implements Cloneable {
+public class MyPoint implements Cloneable, Pixel<MyPoint> {
 	private float x;
 	private float y;
 
@@ -40,10 +46,28 @@ public class MyPoint implements Cloneable {
 		return new MyPoint(x, y);
 	}
 
+	@Override
+	public boolean contains(double x, double y) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	public float distance(MyPoint other) {
 		float dx = x - other.x;
 		float dy = y - other.y;
-		return (float) Math.sqrt(dx * dx + dy * dy);
+		return (float) Math.sqrt((dx * dx) + (dy * dy));
+	}
+
+	@Override
+	public Rectangle2D getBoundingBox() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MyPoint getCenter() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public float getX() {
@@ -52,6 +76,18 @@ public class MyPoint implements Cloneable {
 
 	public float getY() {
 		return y;
+	}
+
+	@Override
+	public Iterator<MyPoint> iterator() {
+		ArrayList<MyPoint> px = new ArrayList<MyPoint>();
+		px.add(this);
+		return px.iterator();
+	}
+
+	@Override
+	public MyPoint plus(MyPoint other) {
+		return new MyPoint(x + other.x, y + other.y);
 	}
 
 	public void setX(float x) {
