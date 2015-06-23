@@ -36,7 +36,6 @@ import plugins.nherve.toolbox.image.feature.descriptor.DefaultDescriptorImpl;
 import plugins.nherve.toolbox.image.feature.descriptor.LocalDescriptor;
 import plugins.nherve.toolbox.image.feature.region.Pixel;
 import plugins.nherve.toolbox.image.feature.region.SupportRegionException;
-import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 

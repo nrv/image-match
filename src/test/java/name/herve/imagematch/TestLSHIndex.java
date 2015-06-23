@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import name.herve.imagematch.db.SiftDescriptorsConfiguration;
+import name.herve.imagematch.impl.MyFeaturePersistence;
 import name.herve.imagematch.lsh.LSHTables;
 import plugins.nherve.toolbox.Algorithm;
 import plugins.nherve.toolbox.PerfMonitor;
+import plugins.nherve.toolbox.PersistenceToolbox;
 import plugins.nherve.toolbox.concurrent.TaskException;
 import plugins.nherve.toolbox.concurrent.TaskManager;
 import plugins.nherve.toolbox.image.DefaultImageLoader;
@@ -20,6 +23,8 @@ import plugins.nherve.toolbox.image.db.ImageDatabase;
 import plugins.nherve.toolbox.image.db.ImageEntry;
 import plugins.nherve.toolbox.image.db.IndexingConfiguration;
 import plugins.nherve.toolbox.image.feature.DefaultSegmentableImage;
+import plugins.nherve.toolbox.image.feature.signature.BagOfSignatures;
+import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * 
@@ -38,7 +43,12 @@ public class TestLSHIndex extends Algorithm {
 
 		@Override
 		public Boolean call() throws Exception {
-			e.setIndexed(lsh.h(e.getSig()));
+			// e.setIndexed(lsh.h(e.getLocalSignatures().get(key)));
+			Map<String, BagOfSignatures<VectorSignature>> sigs = e.getLocalSignatures(); 
+			BagOfSignatures<VectorSignature> bag = sigs.get("Sift"); 
+			for (VectorSignature vs : bag) {
+				lsh.h(vs);
+			}
 			return true;
 		}
 	}
@@ -50,11 +60,15 @@ public class TestLSHIndex extends Algorithm {
 			DatabaseConfiguration dbConf = TestDatabase.getDatabaseConfiguration();
 			DatabaseManager<DefaultSegmentableImage> mgr = new DatabaseManager<DefaultSegmentableImage>(true);
 			
-			
+			PersistenceToolbox.registerSignaturePersistenceHook(new MyFeaturePersistence());
 			ImageDatabase<DefaultSegmentableImage> db = mgr.load(dbConf);
-
+			
+			TestLSHIndex algo = new TestLSHIndex();
+			algo.work(db, 2, 2, 128);
 
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TaskException e) {
 			e.printStackTrace();
 		} finally {
 			TaskManager.shutdownAll();
@@ -63,7 +77,7 @@ public class TestLSHIndex extends Algorithm {
 
 	}
 
-	public void work(ImageDatabase db, int k, int L) throws IOException, TaskException {
+	public void work(ImageDatabase<DefaultSegmentableImage> db, int k, int L, int dim) throws IOException, TaskException {
 		TaskManager tm = new TaskManager();
 		try {
 			PerfMonitor perf = new PerfMonitor(PerfMonitor.MONITOR_ALL_THREAD_ROUGHLY);
@@ -71,7 +85,7 @@ public class TestLSHIndex extends Algorithm {
 			perf.start();
 
 			List<Callable<Boolean>> lshTasks = new ArrayList<Callable<Boolean>>();
-			LSHTables lsh = new LSHTables(k, L, dic.getDim());
+			LSHTables lsh = new LSHTables(k, L, dim);
 			lsh.generateProjection();
 
 			for (ImageEntry e : db) {
@@ -81,10 +95,11 @@ public class TestLSHIndex extends Algorithm {
 
 			perf.stop();
 			System.out.println(perf);
-			Persistence p = new Persistence();
-			p.dumpLSHTables(lsh, p.getLSHTablesFile(root));
-			p.dumpSignatures(db, p.getLSHIndexFile(root), true);
-			System.out.println("Files dumped");
+			
+//			Persistence p = new Persistence();
+//			p.dumpLSHTables(lsh, p.getLSHTablesFile(root));
+//			p.dumpSignatures(db, p.getLSHIndexFile(root), true);
+//			System.out.println("Files dumped");
 		} catch (InterruptedException e) {
 			throw new TaskException(e);
 		} finally {

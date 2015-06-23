@@ -19,6 +19,8 @@
 
 package name.herve.imagematch.lsh;
 
+import name.herve.imagematch.impl.MyFeature;
+
 import org.apache.lucene.util.OpenBitSet;
 
 import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
@@ -111,7 +113,17 @@ public class RandomProjection {
 				}
 				proj.set(t, val);
 			}
-		} else {
+		} else if (s instanceof MyFeature) {
+			for (int t = 0; t < nb; t++) {
+				double val = 0;
+				double[] projectionVector = projection[t];
+				float[] desc = ((MyFeature) s).getDesc();
+				for (int d = 0; d < projectionVector.length; d++) {
+					val += desc[d] * projectionVector[d];
+				}
+				proj.set(t, val);
+			}
+		}else {
 			throw new SignatureException("Hum, what !");
 		}
 

@@ -3,6 +3,8 @@ package name.herve.imagematch;
 import java.io.IOException;
 
 import name.herve.imagematch.db.SiftDescriptorsConfiguration;
+import name.herve.imagematch.impl.MyFeaturePersistence;
+import plugins.nherve.toolbox.PersistenceToolbox;
 import plugins.nherve.toolbox.concurrent.TaskManager;
 import plugins.nherve.toolbox.image.DefaultImageLoader;
 import plugins.nherve.toolbox.image.db.DatabaseConfiguration;
@@ -40,6 +42,8 @@ public class TestDatabase {
 			ImageDatabase<DefaultSegmentableImage> db = mgr.create(dbConf);
 
 			mgr.index(db, new DefaultImageLoader(), idxConf, true, 5, false);
+			
+			PersistenceToolbox.registerSignaturePersistenceHook(new MyFeaturePersistence());
 			mgr.save(db);
 
 		} catch (IOException e) {
