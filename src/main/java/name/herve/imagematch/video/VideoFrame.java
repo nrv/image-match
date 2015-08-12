@@ -96,6 +96,6 @@ public class VideoFrame {
 
 	@Override
 	public String toString() {
-		return "[frame=" + frame + ", time=" + time + "]";
+		return "[frame=" + frame + ", time=" + time + (tc != null ? " / " + tc : "") + "]";
 	}
 }
