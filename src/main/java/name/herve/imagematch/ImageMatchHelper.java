@@ -159,7 +159,7 @@ public class ImageMatchHelper extends Algorithm {
 			algo.estimateModel(matches);
 			iteration = algo.getInliers();
 
-			log("RANSAC [" + group + "] : " + iteration.size());
+//			log("RANSAC [" + group + "] : " + iteration.size());
 
 			for (MyPointMatch pm : iteration) {
 				pm.setGroup(group);
@@ -210,7 +210,7 @@ public class ImageMatchHelper extends Algorithm {
 			img = ImageTools.resize(img, (int) (img.getWidth() * ratio), (int) (img.getHeight() * ratio), true);
 		}
 
-		log("SURF : " + img.getWidth() + " x " + img.getHeight());
+//		log("SURF : " + img.getWidth() + " x " + img.getHeight());
 
 		Surf surf = new Surf(img, SURF_BALANCE_VALUE, SURF_THRESHOLD, SURF_OCTAVES);
 

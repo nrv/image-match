@@ -1,14 +1,11 @@
 package name.herve.imagematch;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import name.herve.imagematch.db.SiftDescriptorsConfiguration;
 import name.herve.imagematch.impl.MyFeaturePersistence;
 import name.herve.imagematch.lsh.LSHTables;
 import plugins.nherve.toolbox.Algorithm;
@@ -16,12 +13,10 @@ import plugins.nherve.toolbox.PerfMonitor;
 import plugins.nherve.toolbox.PersistenceToolbox;
 import plugins.nherve.toolbox.concurrent.TaskException;
 import plugins.nherve.toolbox.concurrent.TaskManager;
-import plugins.nherve.toolbox.image.DefaultImageLoader;
 import plugins.nherve.toolbox.image.db.DatabaseConfiguration;
 import plugins.nherve.toolbox.image.db.DatabaseManager;
 import plugins.nherve.toolbox.image.db.ImageDatabase;
 import plugins.nherve.toolbox.image.db.ImageEntry;
-import plugins.nherve.toolbox.image.db.IndexingConfiguration;
 import plugins.nherve.toolbox.image.feature.DefaultSegmentableImage;
 import plugins.nherve.toolbox.image.feature.signature.BagOfSignatures;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
@@ -32,10 +27,10 @@ import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
  */
 public class TestLSHIndex extends Algorithm {
 	public class LSHWorker implements Callable<Boolean> {
-		private final ImageEntry e;
+		private final ImageEntry<DefaultSegmentableImage> e;
 		private final LSHTables lsh;
 
-		public LSHWorker(LSHTables lsh, ImageEntry e) {
+		public LSHWorker(LSHTables lsh, ImageEntry<DefaultSegmentableImage> e) {
 			super();
 			this.e = e;
 			this.lsh = lsh;
@@ -64,7 +59,7 @@ public class TestLSHIndex extends Algorithm {
 			ImageDatabase<DefaultSegmentableImage> db = mgr.load(dbConf);
 			
 			TestLSHIndex algo = new TestLSHIndex();
-			algo.work(db, 2, 2, 128);
+			algo.work(db, 32, 32, 128);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -88,7 +83,7 @@ public class TestLSHIndex extends Algorithm {
 			LSHTables lsh = new LSHTables(k, L, dim);
 			lsh.generateProjection();
 
-			for (ImageEntry e : db) {
+			for (ImageEntry<DefaultSegmentableImage> e : db) {
 				lshTasks.add(new LSHWorker(lsh, e));
 			}
 			tm.waitResults(tm.submitAll(lshTasks), "lsh", 1000l);

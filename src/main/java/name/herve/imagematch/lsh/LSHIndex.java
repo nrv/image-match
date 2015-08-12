@@ -20,11 +20,12 @@
 package name.herve.imagematch.lsh;
 
 
-import java.util.Map.Entry;
-
 import plugins.nherve.toolbox.image.db.ImageDatabase;
+import plugins.nherve.toolbox.image.db.ImageEntry;
+import plugins.nherve.toolbox.image.db.QueryManager;
 import plugins.nherve.toolbox.image.db.QueryManager.Response;
 import plugins.nherve.toolbox.image.db.QueryManager.ResponseUnit;
+import plugins.nherve.toolbox.image.feature.DefaultSegmentableImage;
 import plugins.nherve.toolbox.image.feature.SignatureDistance;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
@@ -32,22 +33,22 @@ import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class LSHIndex {
-	private ImageDatabase db;
+public class LSHIndex extends QueryManager<DefaultSegmentableImage> {
+	private ImageDatabase<DefaultSegmentableImage> db;
 	private SignatureDistance<VectorSignature> distance;
 	private LSHTables lshTables;
 	private int nbLshQueries;
 	private double probedPct;
 
-	public LSHIndex(ImageDatabase db, SignatureDistance<VectorSignature> distance) {
-		super();
+	public LSHIndex(ImageDatabase<DefaultSegmentableImage> db, SignatureDistance<VectorSignature> distance) {
+		super(true);
 		this.distance = distance;
 		this.db = db;
 		probedPct = 0;
 		nbLshQueries = 0;
 	}
 
-	public Response externalKnnQuery(VectorSignature externalQuery, int k) throws SignatureException {
+	public QueryManager<DefaultSegmentableImage>.Response externalKnnQuery(VectorSignature externalQuery, int k) throws SignatureException {
 		return knnQuery(lshTables.h(externalQuery), externalQuery, k);
 	}
 
@@ -59,19 +60,19 @@ public class LSHIndex {
 		return nbLshQueries;
 	}
 
-	public Response internalKnnQuery(long internalQuery, int k) throws SignatureException {
+	public QueryManager<DefaultSegmentableImage>.Response internalKnnQuery(long internalQuery, int k) throws SignatureException {
 		BitsetSignature qi = (BitsetSignature) (db.get(internalQuery).getIndexed());
 		VectorSignature q = db.get(internalQuery).getSig();
 
 		return knnQuery(qi, q, k);
 	}
 
-	private Response knnQuery(BitsetSignature qi, VectorSignature q, int k) throws SignatureException {
-		Response result = new Response();
+	private QueryManager<DefaultSegmentableImage>.Response knnQuery(BitsetSignature qi, VectorSignature q, int k) throws SignatureException {
+		QueryManager<DefaultSegmentableImage>.Response result = new Response("");
 
 		long probed = 0;
 
-		for (Entry e : db) {
+		for (ImageEntry<DefaultSegmentableImage> e : db) {
 			BitsetSignature si = (BitsetSignature) (e.getIndexed());
 
 			if (si != null) {
@@ -79,7 +80,9 @@ public class LSHIndex {
 					probed++;
 					double dtq = distance.computeDistance(e.getSig(), q);
 					if ((dtq < result.getCurrentMin()) || (result.size() < k)) {
-						ResponseUnit ru = new ResponseUnit(e, dtq);
+						ResponseUnit ru = new ResponseUnit();
+						ru.setDistanceToQuery(dtq);
+						ru.setEntry(e);
 						result.add(ru);
 						result.sortAndTruncate(k);
 					}
