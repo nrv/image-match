@@ -31,6 +31,13 @@ public class MyPointMatch {
 	private double featureDistance;
 	private float distance;
 	private int group;
+	
+	public MyPointMatch(float x1, float y1, float x2, float y2) {
+		super();
+		
+		p1 = new MyPoint(x1, y1);
+		p2 = new MyPoint(x2, y2);
+	}
 
 	public MyPointMatch(MyFeature f1, MyFeature f2, double featureDistance) {
 		super();
