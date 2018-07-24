@@ -24,13 +24,13 @@ import java.util.Iterator;
 
 import org.apache.lucene.util.OpenBitSet;
 
+import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class BitsetSignature extends VectorSignature {
+public class BitsetSignature extends DefaultVectorSignature {
 	protected final static DecimalFormat bdf = new DecimalFormat("0");
 
 	private OpenBitSet bitSet;
@@ -56,7 +56,7 @@ public class BitsetSignature extends VectorSignature {
 	}
 
 	@Override
-	public void concat(VectorSignature other) throws SignatureException {
+	public void concat(DefaultVectorSignature other) throws SignatureException {
 		throw new SignatureException("not implemented");
 	}
 

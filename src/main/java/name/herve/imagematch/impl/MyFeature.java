@@ -21,15 +21,15 @@ package name.herve.imagematch.impl;
 import java.util.Iterator;
 
 import mpi.cbg.fly.Feature;
+import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 import com.stromberglabs.jopensurf.SURFInterestPoint;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class MyFeature extends VectorSignature {
+public class MyFeature extends DefaultVectorSignature {
 	private class MyFeatureIterator implements Iterator<Integer> {
 		private int d;
 
@@ -101,12 +101,12 @@ public class MyFeature extends VectorSignature {
 	}
 
 	@Override
-	public VectorSignature clone() throws CloneNotSupportedException {
+	public DefaultVectorSignature clone() throws CloneNotSupportedException {
 		throw new RuntimeException("Not implemented yet !");
 	}
 
 	@Override
-	public void concat(VectorSignature other) throws SignatureException {
+	public void concat(DefaultVectorSignature other) throws SignatureException {
 		throw new RuntimeException("Not implemented yet !");
 	}
 

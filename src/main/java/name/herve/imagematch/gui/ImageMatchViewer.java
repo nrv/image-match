@@ -142,7 +142,7 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 				matchFinder.setDistance(distance);
 
 				List<MyPointMatch> m = matchFinder.work();
-				log("Matches computed [" + m.size() + "]");
+				info("Matches computed [" + m.size() + "]");
 
 				ImageMatchHelper helper = new ImageMatchHelper();
 
@@ -153,12 +153,12 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 					float minInlierRatio = Float.parseFloat(tfRansacMinInlierRatio.getText());
 
 					m = helper.ransac(m, cbIterativeRansac.isSelected(), epsilon, iterations, minInlierRatio, minMatches);
-					log("RANSAC computed [" + m.size() + "]");
+					info("RANSAC computed [" + m.size() + "]");
 				}
 
 				monitor.stop();
 				DecimalFormat df = new DecimalFormat("0.000");
-				log("Time : " + df.format(monitor.getElapsedTimeMilli()));
+				info("Time : " + df.format(monitor.getElapsedTimeMilli()));
 
 				return m;
 			}
@@ -201,10 +201,10 @@ public class ImageMatchViewer extends Algorithm implements ActionListener, Image
 		protected List<MyFeature> doInBackground() throws Exception {
 			try {
 				List<MyFeature> f = doSurf ? algo.processSURF(v.getImage()) : algo.processSIFT(v.getImage());
-				log("Features extracted for " + v.getLabel());
+				info("Features extracted for " + v.getLabel());
 				return f;
 			} catch (IOException e) {
-				logError(e.getMessage());
+				error(e.getMessage());
 				return null;
 			}
 		}

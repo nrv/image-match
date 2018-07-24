@@ -7,7 +7,7 @@ import java.nio.channels.FileChannel;
 
 import plugins.nherve.toolbox.PersistenceToolbox;
 import plugins.nherve.toolbox.SignaturePersistenceHook;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
+import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
@@ -15,7 +15,7 @@ import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 public class MyFeaturePersistence implements SignaturePersistenceHook<MyFeature> {
 
 	@Override
-	public void dumpSignature(FileChannel fc, VectorSignature s) throws IOException {
+	public void dumpSignature(FileChannel fc, DefaultVectorSignature s) throws IOException {
 		MyFeature f = (MyFeature) s;
 
 		PersistenceToolbox.dumpInt(fc, f.getId());
@@ -42,7 +42,7 @@ public class MyFeaturePersistence implements SignaturePersistenceHook<MyFeature>
 	}
 
 	@Override
-	public VectorSignature loadSignature(FileChannel fc) throws IOException {
+	public DefaultVectorSignature loadSignature(FileChannel fc) throws IOException {
 		MyFeature f = new MyFeature();
 
 		f.setId(PersistenceToolbox.loadInt(fc));

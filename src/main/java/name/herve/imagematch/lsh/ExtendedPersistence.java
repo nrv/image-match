@@ -11,17 +11,15 @@ import java.nio.channels.FileChannel;
 import org.apache.lucene.util.OpenBitSet;
 
 import plugins.nherve.toolbox.PersistenceToolbox;
-import fr.otmedia.plagiarism.lsh.BitsetSignature;
-import fr.otmedia.plagiarism.lsh.LSHTables;
-import fr.otmedia.plagiarism.lsh.RandomProjection;
+import plugins.nherve.toolbox.image.feature.Signature;
 
-public class ExtendedPersistence extends Persistence {
+public class ExtendedPersistence {
 	private final static int BITSET_TYPE = 16;
 	
 	private void dumpLSHTables(LSHTables lsh, File f) throws IOException {
 		RandomAccessFile raf = null;
 		try {
-			raf = getFile(f, true);
+			raf = PersistenceToolbox.getFile(f, true);
 			FileChannel fc = raf.getChannel();
 			PersistenceToolbox.dumpString(fc, LSHTables.VERSION);
 
@@ -39,7 +37,7 @@ public class ExtendedPersistence extends Persistence {
 	public void dumpRandomProjection(RandomProjection rp, File f) throws IOException {
 		RandomAccessFile raf = null;
 		try {
-			raf = getFile(f, true);
+			raf = PersistenceToolbox.getFile(f, true);
 			FileChannel fc = raf.getChannel();
 			dumpRandomProjection(rp, fc);
 		} finally {
@@ -83,7 +81,7 @@ public class ExtendedPersistence extends Persistence {
 	public LSHTables loadLSHTables(File f, boolean full) throws IOException {
 		RandomAccessFile raf = null;
 		try {
-			raf = getFile(f, false);
+			raf = PersistenceToolbox.getFile(f, false);
 			FileChannel fc = raf.getChannel();
 
 			String version = PersistenceToolbox.loadString(fc);
@@ -134,21 +132,28 @@ public class ExtendedPersistence extends Persistence {
 
 		return rp;
 	}
-
+	
 	public Signature loadSignature(FileChannel fc) throws IOException {
 		int type = PersistenceToolbox.loadInt(fc);
 		switch (type) {
+		case PersistenceToolbox.NULL_TYPE:
+			return null;
+		case PersistenceToolbox.DENSE_TYPE:
+			return PersistenceToolbox.loadDenseVectorSignature(fc);
+		case PersistenceToolbox.INDEX_TYPE:
+			return PersistenceToolbox.loadIndexSignature(fc);
+		case PersistenceToolbox.SPARSE_TYPE:
+			return PersistenceToolbox.loadSparseVectorSignature(fc);		
 		case BITSET_TYPE:
 			return loadBitsetSignature(fc);
-		default:
-			return super.loadSignature(fc);
 		}
+		throw new IOException("Unknown VectorSignature type (" + type + ")");
 	}
 
 	public RandomProjection loadRandomProjection(File f) throws IOException {
 		RandomAccessFile raf = null;
 		try {
-			raf = getFile(f, false);
+			raf = PersistenceToolbox.getFile(f, false);
 			FileChannel fc = raf.getChannel();
 			return loadRandomProjection(fc);
 		} finally {
@@ -170,7 +175,7 @@ public class ExtendedPersistence extends Persistence {
 			lb.flip();
 			fc.write(bb);
 		} else {
-			super.dumpSignature(fc, s);
+			PersistenceToolbox.dumpSignature(fc, s);
 		}
 	}
 }

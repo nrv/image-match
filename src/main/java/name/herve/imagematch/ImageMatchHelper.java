@@ -180,7 +180,7 @@ public class ImageMatchHelper extends Algorithm {
 	}
 
 	public List<MyFeature> processSIFT(BufferedImage img) throws IOException {
-		log("SIFT : " + img.getWidth() + " x " + img.getHeight());
+		info("SIFT : " + img.getWidth() + " x " + img.getHeight());
 
 		SIFT.set_fdsize(SIFT_FDSIZE);
 		SIFT.fdbins(SIFT_FDBINS);

@@ -26,9 +26,7 @@ import name.herve.imagematch.PointMatchFinder;
 import plugins.nherve.toolbox.concurrent.MultipleDataTask;
 import plugins.nherve.toolbox.concurrent.TaskException;
 import plugins.nherve.toolbox.concurrent.TaskManager;
-import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net

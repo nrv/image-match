@@ -36,13 +36,14 @@ import plugins.nherve.toolbox.image.feature.descriptor.DefaultDescriptorImpl;
 import plugins.nherve.toolbox.image.feature.descriptor.LocalDescriptor;
 import plugins.nherve.toolbox.image.feature.region.Pixel;
 import plugins.nherve.toolbox.image.feature.region.SupportRegionException;
+import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
  */
-public class SiftDetectorAndDescriptor extends DefaultDescriptorImpl<DefaultSegmentableImage, VectorSignature> implements LocalDescriptor<DefaultSegmentableImage, VectorSignature, Pixel>, SupportRegionFactory<Pixel> {
+public class SiftDetectorAndDescriptor extends DefaultDescriptorImpl<DefaultSegmentableImage, DefaultVectorSignature> implements LocalDescriptor<DefaultSegmentableImage, DefaultVectorSignature, Pixel>, SupportRegionFactory<Pixel> {
 	private Map<BufferedImage, Map<Pixel, MyFeature>> cache;
 
 	public SiftDetectorAndDescriptor(boolean display) {
@@ -97,12 +98,12 @@ public class SiftDetectorAndDescriptor extends DefaultDescriptorImpl<DefaultSegm
 	}
 
 	@Override
-	public VectorSignature extractLocalSignature(DefaultSegmentableImage img, SupportRegion<Pixel> reg) throws SignatureException {
+	public DefaultVectorSignature extractLocalSignature(DefaultSegmentableImage img, SupportRegion<Pixel> reg) throws SignatureException {
 		return cache.get(img.getImage()).get((Pixel) reg);
 	}
 
 	@Override
-	public VectorSignature extractLocalSignature(DefaultSegmentableImage img, Shape shp) throws SignatureException {
+	public DefaultVectorSignature extractLocalSignature(DefaultSegmentableImage img, Shape shp) throws SignatureException {
 		throw new SignatureException("Not yet implemented");
 	}
 

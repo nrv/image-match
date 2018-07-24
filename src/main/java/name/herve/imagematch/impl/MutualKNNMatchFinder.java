@@ -30,9 +30,7 @@ import name.herve.imagematch.PointMatchFinder;
 import plugins.nherve.toolbox.concurrent.MultipleDataTask;
 import plugins.nherve.toolbox.concurrent.TaskException;
 import plugins.nherve.toolbox.concurrent.TaskManager;
-import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net
@@ -47,8 +45,8 @@ public class MutualKNNMatchFinder extends PointMatchFinder {
 	public final static int K_V = 3;
 
 	private double[][] dm;
-	private Set[] p1n;
-	private Set[] p2n;
+	private Set<Integer>[] p1n;
+	private Set<Integer>[] p2n;
 
 	public class DistanceCompute extends MultipleDataTask<MyFeature, Boolean> {
 		public DistanceCompute(List<MyFeature> allData, int idx1, int idx2) {
@@ -134,21 +132,21 @@ public class MutualKNNMatchFinder extends PointMatchFinder {
 
 		List<MyPointMatch> matches = new ArrayList<MyPointMatch>();
 		
-		TaskManager mgr = new TaskManager();
+		TaskManager mgr = TaskManager.getSecondLevelInstance();
 		mgr.setShowProgress(false);
 
 		try {
-			mgr.submitMultiForAll(getP1(), DistanceCompute.class, this, "compute distances", 1000);
+			mgr.submitMultiForAll(getP1(), DistanceCompute.class, this, "compute distances", 100);
 
 			Boolean[] p = new Boolean[getP1().size()];
 			p1n = new Set[getP1().size()];
 			Arrays.fill(p, true);
-			mgr.submitMultiForAll(p, KNNCompute.class, this, "compute p1 knn", 1000);
+			mgr.submitMultiForAll(p, KNNCompute.class, this, "compute p1 knn", 100);
 
 			p = new Boolean[getP2().size()];
 			p2n = new Set[getP2().size()];
 			Arrays.fill(p, false);
-			mgr.submitMultiForAll(p, KNNCompute.class, this, "compute p2 knn", 1000);
+			mgr.submitMultiForAll(p, KNNCompute.class, this, "compute p2 knn", 100);
 			
 			for (int i1 = 0; i1 < getP1().size(); i1++) {
 				for (int i2 : (Set<Integer>)p1n[i1]) {
@@ -164,10 +162,7 @@ public class MutualKNNMatchFinder extends PointMatchFinder {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
-		mgr.shutdown();
-
-		
+	
 
 		return matches;
 	}

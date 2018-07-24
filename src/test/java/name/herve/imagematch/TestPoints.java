@@ -8,7 +8,6 @@ import java.util.List;
 
 import name.herve.imagematch.impl.MyFeature;
 import name.herve.imagematch.impl.MyPointMatch;
-
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 
 public class TestPoints {

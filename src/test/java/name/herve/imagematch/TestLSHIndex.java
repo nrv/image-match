@@ -19,7 +19,7 @@ import plugins.nherve.toolbox.image.db.ImageDatabase;
 import plugins.nherve.toolbox.image.db.ImageEntry;
 import plugins.nherve.toolbox.image.feature.DefaultSegmentableImage;
 import plugins.nherve.toolbox.image.feature.signature.BagOfSignatures;
-import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
+import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 
 /**
  * 
@@ -39,9 +39,9 @@ public class TestLSHIndex extends Algorithm {
 		@Override
 		public Boolean call() throws Exception {
 			// e.setIndexed(lsh.h(e.getLocalSignatures().get(key)));
-			Map<String, BagOfSignatures<VectorSignature>> sigs = e.getLocalSignatures(); 
-			BagOfSignatures<VectorSignature> bag = sigs.get("Sift"); 
-			for (VectorSignature vs : bag) {
+			Map<String, BagOfSignatures<DefaultVectorSignature>> sigs = e.getLocalSignatures(); 
+			BagOfSignatures<DefaultVectorSignature> bag = sigs.get("Sift"); 
+			for (DefaultVectorSignature vs : bag) {
 				lsh.h(vs);
 			}
 			return true;
