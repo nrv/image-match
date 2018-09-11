@@ -19,7 +19,7 @@ public class TestDatabase {
 	public static DatabaseConfiguration getDatabaseConfiguration() {
 		DatabaseConfiguration dbConf = new DatabaseConfiguration();
 		dbConf.setName("Test");
-		dbConf.setExtension(".JPG");
+		dbConf.setExtension(".jpg");
 		dbConf.setRoot(ROOT);
 		dbConf.setPictures("pictures");
 		dbConf.setSignatures("signatures");
