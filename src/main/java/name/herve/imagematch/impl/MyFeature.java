@@ -20,11 +20,11 @@ package name.herve.imagematch.impl;
 
 import java.util.Iterator;
 
+import com.stromberglabs.jopensurf.SURFInterestPoint;
+
 import mpi.cbg.fly.Feature;
 import plugins.nherve.toolbox.image.feature.signature.DefaultVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
-
-import com.stromberglabs.jopensurf.SURFInterestPoint;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net

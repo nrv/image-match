@@ -1,12 +1,5 @@
 package name.herve.imagematch;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.text.DecimalFormat;
-
-import javax.imageio.ImageIO;
-
 public class TestXuggler /*extends MediaListenerAdapter */ {
 //	private final static String MP4_FILE = "/home/nherve/Travail/Data/videos/tracking_dataset/all_extracts.mpg";
 //	private final static String MP4_FILE = "/home/nherve/Travail/Data/videos/MGCAF0006836--AP_1_213419_231219.MP4";

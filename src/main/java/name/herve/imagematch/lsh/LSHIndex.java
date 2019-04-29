@@ -21,11 +21,9 @@ package name.herve.imagematch.lsh;
 
 
 import plugins.nherve.toolbox.image.db.ImageDatabase;
-import plugins.nherve.toolbox.image.db.ImageEntry;
 import plugins.nherve.toolbox.image.db.QueryManager;
 import plugins.nherve.toolbox.image.feature.DefaultSegmentableImage;
 import plugins.nherve.toolbox.image.feature.SignatureDistance;
-import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 
 /**

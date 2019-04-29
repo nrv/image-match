@@ -1,35 +1,5 @@
 package name.herve.imagematch;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import javax.imageio.ImageIO;
-
-import name.herve.imagematch.impl.MyFeature;
-import name.herve.imagematch.impl.MyPointMatch;
-import name.herve.imagematch.impl.ThresholdSecondBestMatchFinder;
-import plugins.nherve.toolbox.Algorithm;
-import plugins.nherve.toolbox.concurrent.TaskManager;
-import plugins.nherve.toolbox.image.feature.signature.L2Distance;
-import fr.ina.research.amalia.model.tracking.TrackPosition;
-import fr.ina.research.rex.commons.tc.RexTimeCode;
-
 public class VideoObjectsDetector /* extends Algorithm implements VideoFrameProcessor<String, List<BoundingBox>> */{
 //	public static void main(String[] args) {
 //		try {

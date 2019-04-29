@@ -31,6 +31,9 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
+import com.stromberglabs.jopensurf.SURFInterestPoint;
+import com.stromberglabs.jopensurf.Surf;
+
 import mpi.cbg.fly.Feature;
 import mpi.cbg.fly.SIFT;
 import name.herve.imagematch.impl.MutualKNNMatchFinder;
@@ -44,9 +47,6 @@ import plugins.nherve.toolbox.image.feature.signature.L2Distance;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.VectorSignature;
 import plugins.nherve.toolbox.image.toolboxes.ImageTools;
-
-import com.stromberglabs.jopensurf.SURFInterestPoint;
-import com.stromberglabs.jopensurf.Surf;
 
 /**
  * @author Nicolas HERVE - n.herve@laposte.net

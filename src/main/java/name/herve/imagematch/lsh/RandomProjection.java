@@ -19,10 +19,9 @@
 
 package name.herve.imagematch.lsh;
 
-import name.herve.imagematch.impl.MyFeature;
-
 import org.apache.lucene.util.OpenBitSet;
 
+import name.herve.imagematch.impl.MyFeature;
 import plugins.nherve.toolbox.image.feature.signature.DenseVectorSignature;
 import plugins.nherve.toolbox.image.feature.signature.SignatureException;
 import plugins.nherve.toolbox.image.feature.signature.SparseVectorSignature;
